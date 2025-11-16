@@ -12,16 +12,40 @@ import (
 var ( //declvare variable for images, name *ebiten.Image.
 	background *ebiten.Image
 	player1 *ebiten.Image
-	axeZombie *ebiten.Image
-	screenWidth = 750
-	screenHeight = 750
-	player1InitX = float64((screenWidth / 2) + 50)
-	player1InitY = float64((screenHeight / 2) + 50)
+
+	axeZombieSprites []*ebiten.Image
+
+	lightSaber *ebiten.Image
+
+	screenHeight = 1080
+	screenWidth = 1920
+
+	player1InitX = float64(560)
+	player1InitY = float64(240)
 	axeZombieInitXTemp = float64 (randFloat(1,100))
 	axeZombieInitYTemp = float64 (randFloat(1,100))
-	player1hp = 9999
+	lightSaberX = float64 (player1InitX + 200)
+	lightSaberY = float64 (player1InitY + 200)
+
+
+	player1hp = 20
+	tickCount = 0
 )
 
+
+func loadAxeZombieSprites() {
+  axeZombieSprites = make([]*ebiten.Image, 8)
+
+  for i := 1; i <= 8; i++ {
+    filename := fmt.Sprintf("assets/sprites/enemies/axeZombie/axeZombieSprite%02d.png", i)
+
+    img, _, err := ebitenutil.NewImageFromFile(filename)
+    if err != nil {
+    log.Fatal(err)
+    }
+    axeZombieSprites[i-1] = img
+	}
+}
 
 func abs(f float64) float64 {
   if f < 0 {
@@ -47,27 +71,31 @@ func init() { //initialize images to variables here.
 		log.Fatal(err)
 	}
 
-	axeZombie, _, err = ebitenutil.NewImageFromFile("assets/sprites/enemies/axeZombie/Sprite-0002.png")
+	lightSaber, _, err = ebitenutil.NewImageFromFile("assets/images/lightSaber.png") //will not run if empty
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	loadAxeZombieSprites()
 }
 
 type Game struct{}
 
 func (g *Game) Update() error { //game logic
+
+	tickCount++
 	
-	if ebiten.IsKeyPressed(ebiten.KeyArrowRight) == true { //player movement, inverted
-		player1InitX = player1InitX + 2
+	if ebiten.IsKeyPressed(ebiten.KeyD) == true { //player movement
+		player1InitX = player1InitX + 3
 	}
-	if ebiten.IsKeyPressed(ebiten.KeyArrowLeft) == true {
-		player1InitX = player1InitX - 2
+	if ebiten.IsKeyPressed(ebiten.KeyA) == true {
+		player1InitX = player1InitX - 3
 	}
-	if ebiten.IsKeyPressed(ebiten.KeyArrowDown) == true {
+	if ebiten.IsKeyPressed(ebiten.KeyS) == true {
 		player1InitY = player1InitY + 2
 	}
-	if ebiten.IsKeyPressed(ebiten.KeyArrowUp) == true {
-		player1InitY = player1InitY - 2
+	if ebiten.IsKeyPressed(ebiten.KeyW) == true {
+		player1InitY = player1InitY - 3
 	}
 
 	if axeZombieInitXTemp < (player1InitX - 80){ //enemie movement
@@ -81,14 +109,15 @@ func (g *Game) Update() error { //game logic
 	}
 	if axeZombieInitYTemp > (player1InitY + 80){
 		axeZombieInitYTemp--
-	}
-
+	} 
 
 	// enemy damage when close enough
 	hitRange := 100.0 // adjust to taste
 
 	if abs(axeZombieInitXTemp - player1InitX) < hitRange && abs(axeZombieInitYTemp - player1InitY) < hitRange {
-  player1hp--
+	if tickCount % 150 == 0 {
+		player1hp--
+	}
   fmt.Println("hp:", player1hp)
 }
 	
@@ -96,25 +125,37 @@ func (g *Game) Update() error { //game logic
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {  //called every frame, graphics.
+	
 	screen.DrawImage(background, nil)
 
 	op := &ebiten.DrawImageOptions{}	
 	opAxeZombie := &ebiten.DrawImageOptions{}
 
 	op.GeoM.Translate(player1InitX,player1InitY)
-	opAxeZombie.GeoM.Translate(axeZombieInitXTemp,axeZombieInitYTemp)
-	
-	screen.DrawImage(axeZombie, opAxeZombie)
+	opAxeZombie.GeoM.Translate(axeZombieInitXTemp,axeZombieInitYTemp)		
 
-	screen.DrawImage(player1, op)
+	screen.DrawImage(player1, op)	
+
+	opLightSaber := &ebiten.DrawImageOptions{} //todo: fix
+	opLightSaber.GeoM.Translate(lightSaberX, lightSaberY)
+
+	if ebiten.IsKeyPressed(ebiten.KeyArrowLeft) == true {
+		screen.DrawImage(lightSaber, opLightSaber)
+	}
+
+	frame := (tickCount / 8) % len(axeZombieSprites)
+	currentSprite := axeZombieSprites[frame]
+	screen.DrawImage(currentSprite, opAxeZombie)
+
 }
+
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
 	return 640, 480
 }
 
 func main() {
-	ebiten.SetWindowSize(screenHeight, screenWidth)
+	ebiten.SetWindowSize(screenWidth, screenHeight)
 	ebiten.SetWindowTitle("Render an image")
 	
 	if err := ebiten.RunGame(&Game{}); err != nil { 
