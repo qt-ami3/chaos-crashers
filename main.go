@@ -9,6 +9,11 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
 
+
+func randInt(min, max int) int {
+	return rand.Intn(max-min+1) + min
+}
+
 var ( //declvare variable for images, name *ebiten.Image.
 	background *ebiten.Image
 	player1 *ebiten.Image
@@ -28,11 +33,35 @@ var ( //declvare variable for images, name *ebiten.Image.
 	lightSaberY float64
 
 	player1hp = 20
+
 	tickCount = 0
+
+	zombies []axeZombie
 )
 
 type axeZombie struct{
+	level 	int
+	hp 			int
+	x, y 		float64
+	speed		float64
+	}
 
+
+
+func spawnZombies() {
+  count := randInt(3, 6)
+
+  for i := 0; i < count; i++ {
+    z := axeZombie{
+    x:     randFloat(0, float64(screenWidth + 100)),
+    y:     randFloat(0, float64(screenHeight + 100)),
+    hp:    randInt(3, 10),
+    level: randInt(1, 3),
+    speed: randFloat(0.3, 1.0),
+    }
+    
+		zombies = append(zombies, z)
+  }
 }
 
 func enemyMovement(targetX, targetY, enemyX, enemyY, speed float64) (float64, float64) {
@@ -77,10 +106,26 @@ func randFloat(min, max float64) float64 {
   return min + rand.Float64()*(max-min)
 }
 
+
+func isBlocked(px, py float64, dx, dy float64, blockRange float64, zombies []axeZombie) bool {
+  for _, z := range zombies {
+  	// Project the check range in the direction the player wants to move
+    checkX := px + dx*blockRange
+    checkY := py + dy*blockRange
+
+    // If an enemy is near that projected point → blocked
+    if abs(z.x-checkX) < 50 && abs(z.y-checkY) < 50 {
+      return true
+    }
+  }
+ 
+	return false
+}
+
 func init() { //initialize images to variables here.
 	var err error
 	
-	background, _, err = ebitenutil.NewImageFromFile("assets/images/go.png") //name, _, etc.
+ 	background, _, err = ebitenutil.NewImageFromFile("assets/images/go.png") //name, _, etc.
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -96,9 +141,12 @@ func init() { //initialize images to variables here.
 	}
 
 	loadAxeZombieSprites()
+	spawnZombies()
 }
 
 type Game struct{}
+
+
 
 func (g *Game) Update() error { //game logic
 
@@ -107,37 +155,56 @@ func (g *Game) Update() error { //game logic
 	lightSaberX = float64 (player1InitX + 100)
 	lightSaberY = float64 (0)
 
-	//any movement code cannot be a switch because it will prevent diagnol
-	if ebiten.IsKeyPressed(ebiten.KeyD) == true { //player movement
-		player1InitX = player1InitX + 3
-	}
-	if ebiten.IsKeyPressed(ebiten.KeyA) == true {
-		player1InitX = player1InitX - 3
-	}
-	if ebiten.IsKeyPressed(ebiten.KeyS) == true {
-		player1InitY = player1InitY + 2
-	}
-	if ebiten.IsKeyPressed(ebiten.KeyW) == true {
-		player1InitY = player1InitY - 3
-	} 
 
-	axeZombieInitXTemp, axeZombieInitYTemp = enemyMovement(
-    player1InitX,
-    player1InitY,
-    axeZombieInitXTemp,
-    axeZombieInitYTemp,
-		0.5,
-	)
+moveSpeed := 3.0
+blockRange := 40.0
 
-	// enemy damage when close enough
-	hitRange := 100.0 // adjust to taste
-
-	if abs(axeZombieInitXTemp - player1InitX) < hitRange && abs(axeZombieInitYTemp - player1InitY) < hitRange {
-	if tickCount % 150 == 0 {
-		player1hp--
-	}
-  fmt.Println("hp:", player1hp)
+// MOVE RIGHT (D)
+if ebiten.IsKeyPressed(ebiten.KeyD) &&
+  !isBlocked(player1InitX, player1InitY, 1, 0, blockRange, zombies) {
+  player1InitX += moveSpeed
 }
+
+// MOVE LEFT (A)
+if ebiten.IsKeyPressed(ebiten.KeyA) &&
+  !isBlocked(player1InitX, player1InitY, -1, 0, blockRange, zombies) {
+  player1InitX -= moveSpeed
+}
+
+// DOWN (S)
+if ebiten.IsKeyPressed(ebiten.KeyS) &&
+  !isBlocked(player1InitX, player1InitY, 0, 1, blockRange, zombies) {
+  player1InitY += moveSpeed
+}
+
+// UP (W)
+if ebiten.IsKeyPressed(ebiten.KeyW) &&
+  !isBlocked(player1InitX, player1InitY, 0, -1, blockRange, zombies) {
+	player1InitY -= moveSpeed
+}
+
+
+for i := range zombies {
+  
+	zombies[i].x, zombies[i].y = enemyMovement(
+    player1InitX,
+  	player1InitY,
+    zombies[i].x,
+    zombies[i].y,
+    zombies[i].speed,
+  )
+
+  hitRange := 80.0 // damage player if close
+  if abs(zombies[i].x-player1InitX) < hitRange &&
+  abs(zombies[i].y-player1InitY) < hitRange {
+    if tickCount%150 == 0 {
+      player1hp--
+    }
+  }
+}
+
+  fmt.Println("hp:", player1hp)
+
 	
 	return nil
 }
@@ -161,10 +228,14 @@ func (g *Game) Draw(screen *ebiten.Image) {  //called every frame, graphics.
 		screen.DrawImage(lightSaber, opLightSaber)
 	}
 
-	frame := (tickCount / 8) % len(axeZombieSprites)
-	currentSprite := axeZombieSprites[frame]
-	screen.DrawImage(currentSprite, opAxeZombie)
+frame := (tickCount / 8) % len(axeZombieSprites)
+sprite := axeZombieSprites[frame]
 
+	for _, z := range zombies {
+		op := &ebiten.DrawImageOptions{}
+ 		op.GeoM.Translate(z.x, z.y)
+  	screen.DrawImage(sprite, op)
+	}
 }
 
 
