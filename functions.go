@@ -128,7 +128,11 @@ func randFloat(min, max float64) float64 {
 
 func isBlocked(px, py float64, dx, dy float64, blockRange float64, zombies []axeZombie) bool {
   for _, z := range zombies {
-  	// Project the check range in the direction the player wants to move
+  	if z.hp == 0 {
+			continue
+		}
+
+		// Project the check range in the direction the player wants to move
     checkX := px + dx*blockRange
     checkY := py + dy*blockRange
 

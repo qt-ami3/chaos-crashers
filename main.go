@@ -11,11 +11,10 @@ import (
 var ( //declvare variable for images, name *ebiten.Image.
 	background *ebiten.Image
 	player1 *ebiten.Image
+	sword *ebiten.Image
 
 	axeZombieSprites []*ebiten.Image
-	axeZombieHitSprites []*ebiten.Image
-
-	sword *ebiten.Image
+	axeZombieHitSprites []*ebiten.Image	
 
 	screenHeight = 1080
 	screenWidth = 1920
@@ -32,7 +31,6 @@ var ( //declvare variable for images, name *ebiten.Image.
 	tickCount = 0
 
 	zombies []axeZombie
-
 
 	swordLocation = rune ('s') //a = left, d = right, s = down, w = up
 )
@@ -65,10 +63,13 @@ func init() { //initialize images to variables here.
 	if err != nil {
 		log.Fatal(err)
 	}
-
+	
+	//~~> animation functions <~~\\
 	loadAxeZombieSprites()
 	loadAxeZombieHitSprites()
-	spawnZombies(0.7) //function condition is move speed
+
+
+	spawnZombies(0.7) //loads zombies, condition changes zombie speed.
 }
 
 func (g *Game) Update() error { //game logic
@@ -85,9 +86,11 @@ func (g *Game) Update() error { //game logic
 
 	tickCount++
 
+	//~~> sword direction logic <~~\\
+
 	switch {
 
-		case ebiten.IsKeyPressed(ebiten.KeyArrowRight):	
+		case ebiten.IsKeyPressed(ebiten.KeyArrowRight):
 			swordLocation = 'd'
 		case ebiten.IsKeyPressed(ebiten.KeyArrowLeft):	
 			swordLocation = 'a'
@@ -111,9 +114,9 @@ func (g *Game) Update() error { //game logic
 			swordX = float64 (player1InitX)
 			swordY = float64 (player1InitY - 100)
 	}
-
+	
 	moveSpeed := 3.0
-	blockRange := 35.0
+	blockRange := 35.0 //collusion stat
 
 // MOVE RIGHT (D)
 if ebiten.IsKeyPressed(ebiten.KeyD) &&
@@ -160,7 +163,7 @@ for i := range zombies {
     i,
   )
 
-  // -------- player damage check ----------
+  //~~> player damage check <~~\\
   hitRange := 80.0
   
 	if abs(zombies[i].x-player1InitX) < hitRange && abs(zombies[i].y-player1InitY) < hitRange {
@@ -171,7 +174,7 @@ for i := range zombies {
     }
   }
 
-  // -------- sword hit detection ----------
+  //~~> sword hit detection <~~\\
   swordHitRange := 30.0
   if abs(zombies[i].x - swordX) < swordHitRange && abs(zombies[i].y - swordY) < swordHitRange {
   if (tickCount % 45 == 0){ //attack speed
@@ -190,13 +193,13 @@ func (g *Game) Draw(screen *ebiten.Image) {  //called every frame, graphics.
 	
 	screen.DrawImage(background, nil)
 
-	op := &ebiten.DrawImageOptions{}	
+	op := &ebiten.DrawImageOptions{}
 	opAxeZombie := &ebiten.DrawImageOptions{}
 
 	op.GeoM.Translate(player1InitX,player1InitY)
 	opAxeZombie.GeoM.Translate(axeZombieInitXTemp,axeZombieInitYTemp)		
 
-	opSword := &ebiten.DrawImageOptions{} //todo: fix
+	opSword := &ebiten.DrawImageOptions{}
 	opSword.GeoM.Translate(swordX, swordY)
 
 	screen.DrawImage(player1, op)	
