@@ -68,7 +68,7 @@ func init() { //initialize images to variables here.
 
 	loadAxeZombieSprites()
 	loadAxeZombieHitSprites()
-	spawnZombies(1) //function condition is move speed
+	spawnZombies(0.7) //function condition is move speed
 }
 
 func (g *Game) Update() error { //game logic
@@ -154,6 +154,8 @@ for i := range zombies {
     zombies[i].x,
     zombies[i].y,
     zombies[i].speed,
+		3,
+		swordLocation,
     zombies,
     i,
   )
@@ -172,10 +174,10 @@ for i := range zombies {
   // -------- sword hit detection ----------
   swordHitRange := 30.0
   if abs(zombies[i].x - swordX) < swordHitRange && abs(zombies[i].y - swordY) < swordHitRange {
-  if (tickCount % 60 == 0){
+  if (tickCount % 45 == 0){ //attack speed
 		zombies[i].hp--
 		zombies[i].hit = true
-		zombies[i].hitTimer = 10
+		zombies[i].hitTimer = 8
   	fmt.Println("Zombie", i, "hp:", zombies[i].hp)
 		}
   }

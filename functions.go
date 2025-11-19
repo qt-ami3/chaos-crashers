@@ -27,23 +27,36 @@ func spawnZombies(speedSelect float64) {
 
 
 
-func enemyMovement(targetX, targetY, x, y, speed float64, zombies []axeZombie, self int) (float64, float64) {
+func enemyMovement(targetX, targetY, x, y, speed float64, knockBackSpeed float64, knockbackDirection rune, zombies []axeZombie, self int) (float64, float64) {
   // --- Chase player ---
   dx := 0.0
   dy := 0.0
+	
+	switch {
+		case zombies[self].hit == true && knockbackDirection == 'a':
+			dx -= knockBackSpeed
+		case zombies[self].hit == true && knockbackDirection == 'd':
+			dx += knockBackSpeed
+		case zombies[self].hit == true && knockbackDirection == 's':
+			dy += knockBackSpeed
+		case zombies[self].hit == true && knockbackDirection == 'w':
+			dy -= knockBackSpeed
+	}
 
-  if x < targetX - 80 {
-    dx += speed
-  }
-  if x > targetX + 80 {
-    dx -= speed
-  }
- 	if y + 20 < targetY - 80 {
-  	dy += speed
-  }
-  if y - 20 > targetY + 80 {
-    dy -= speed
-  }
+	if !zombies[self].hit {
+  	if x < targetX - 80 {
+    	dx += speed
+  	}
+  	if x > targetX + 80 {
+    	dx -= speed
+  	}
+ 		if y + 20 < targetY - 80 {
+  		dy += speed
+  	}
+  	if y - 20 > targetY + 80 {
+   		dy -= speed
+  	}
+	}
 
     // --- Avoid other zombies ---
   avoidDist := 40.0
