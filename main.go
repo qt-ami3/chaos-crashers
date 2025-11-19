@@ -33,8 +33,10 @@ var ( //declvare variable for images, name *ebiten.Image.
 	zombies []axeZombie
 
 
-	swordLocation = rune ('a') //a = left, d = right, s = down, w = up
+	swordLocation = rune ('s') //a = left, d = right, s = down, w = up
 )
+
+type Game struct{}
 
 type axeZombie struct{
 	level 	int
@@ -64,8 +66,6 @@ func init() { //initialize images to variables here.
 	loadAxeZombieSprites()
 	spawnZombies(0.1)
 }
-
-type Game struct{}
 
 func (g *Game) Update() error { //game logic
 
@@ -126,32 +126,42 @@ if ebiten.IsKeyPressed(ebiten.KeyW) &&
 }
 
 
+
 for i := range zombies {
+
+  // move zombies, avoiding each other
+  for j := range zombies {
+    	zombies[j].x, zombies[j].y = enemyMovement(
+    	player1InitX,
+    	player1InitY,
+    	zombies[j].x,
+    	zombies[j].y,
+    	zombies[j].speed,
+    	zombies,
+    	i,
+  	)
+	}
+
+  // -------- player damage check ----------
+  hitRange := 80.0
   
+	if abs(zombies[i].x-player1InitX) < hitRange && abs(zombies[i].y-player1InitY) < hitRange {
 
-for i := range zombies {
-  zombies[i].x, zombies[i].y = enemyMovement(
-    player1InitX,      // target (player)
-    player1InitY,
-    zombies[i].x,      // current zombie position
-    zombies[i].y,
-    zombies[i].speed,  // each zombie's speed
-    zombies,           // the entire slice of enemies
-    i,                 // the index of THIS zombie
-    )
-}
-
-  hitRange := 80.0 // damage player if close
-  if abs(zombies[i].x-player1InitX) < hitRange &&
-  abs(zombies[i].y-player1InitY) < hitRange {
-    if tickCount%150 == 0 {
-      player1hp--
+  	if tickCount%150 == 0 {
+    	player1hp--
+      fmt.Println("hp:", player1hp)
     }
   }
+
+  // -------- sword hit detection ----------
+  swordHitRange := 30.0
+  if abs(zombies[i].x - swordX) < swordHitRange && abs(zombies[i].y - swordY) < swordHitRange {
+  if (tickCount % 60 == 0){
+		zombies[i].hp--
+  	fmt.Println("Zombie", i, "hp:", zombies[i].hp)
+		}
+  }
 }
-
-  fmt.Println("hp:", player1hp)
-
 	
 	return nil
 }
