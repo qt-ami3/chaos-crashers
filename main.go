@@ -64,7 +64,7 @@ func init() { //initialize images to variables here.
 	}
 
 	loadAxeZombieSprites()
-	spawnZombies(0.1)
+	spawnZombies(1)
 }
 
 func (g *Game) Update() error { //game logic
@@ -129,18 +129,20 @@ if ebiten.IsKeyPressed(ebiten.KeyW) &&
 
 for i := range zombies {
 
-  // move zombies, avoiding each other
-  for j := range zombies {
-    	zombies[j].x, zombies[j].y = enemyMovement(
-    	player1InitX,
-    	player1InitY,
-    	zombies[j].x,
-    	zombies[j].y,
-    	zombies[j].speed,
-    	zombies,
-    	i,
-  	)
+	if zombies[i].hp <= 0 {
+		continue
 	}
+	
+   // movement (once per zombie)
+  zombies[i].x, zombies[i].y = enemyMovement(
+  	player1InitX,
+    player1InitY,
+    zombies[i].x,
+    zombies[i].y,
+    zombies[i].speed,
+    zombies,
+    i,
+  )
 
   // -------- player damage check ----------
   hitRange := 80.0
@@ -187,6 +189,10 @@ func (g *Game) Draw(screen *ebiten.Image) {  //called every frame, graphics.
 	sprite := axeZombieSprites[frame]
 
 	for _, z := range zombies {
+		if z.hp <= 0 {
+			continue
+		}
+
 		op := &ebiten.DrawImageOptions{}
  		op.GeoM.Translate(z.x, z.y)
   	screen.DrawImage(sprite, op)
