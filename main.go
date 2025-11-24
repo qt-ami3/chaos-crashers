@@ -70,11 +70,10 @@ func init() { //initialize images to variables here.
 	loadAxeZombieHitSprites()
 
 
-	spawnZombies(0.7) //loads zombies, condition changes zombie speed.
+	spawnAxeZombies(0.7) //loads zombies, condition changes zombie speed.
 }
 
 func (g *Game) Update() error { //game logic
-
 
 	for i := range zombies {
     if zombies[i].hitTimer > 0 {
@@ -120,30 +119,28 @@ func (g *Game) Update() error { //game logic
 	blockRange := 35.0 //collusion stat
 
 // MOVE RIGHT (D)
-if ebiten.IsKeyPressed(ebiten.KeyD) &&
+	if ebiten.IsKeyPressed(ebiten.KeyD) &&
   !isBlocked(player1InitX, player1InitY, 1, 0, blockRange, zombies) {
-  player1InitX += moveSpeed
-}
+  	player1InitX += moveSpeed
+	}
 
 // MOVE LEFT (A)
-if ebiten.IsKeyPressed(ebiten.KeyA) &&
-  !isBlocked(player1InitX, player1InitY, -1, 0, blockRange, zombies) {
-  player1InitX -= moveSpeed
-}
+	if ebiten.IsKeyPressed(ebiten.KeyA) &&
+  	!isBlocked(player1InitX, player1InitY, -1, 0, blockRange, zombies) {
+  	player1InitX -= moveSpeed
+	}
 
-// DOWN (S)
-if ebiten.IsKeyPressed(ebiten.KeyS) &&
-  !isBlocked(player1InitX, player1InitY, 0, 1, blockRange, zombies) {
-  player1InitY += moveSpeed
-}
+	// DOWN (S)
+	if ebiten.IsKeyPressed(ebiten.KeyS) &&
+  	!isBlocked(player1InitX, player1InitY, 0, 1, blockRange, zombies) {
+  	player1InitY += moveSpeed
+	}
 
-// UP (W)
-if ebiten.IsKeyPressed(ebiten.KeyW) &&
-  !isBlocked(player1InitX, player1InitY, 0, -1, blockRange, zombies) {
-	player1InitY -= moveSpeed
-}
-
-
+	// UP (W)
+	if ebiten.IsKeyPressed(ebiten.KeyW) &&
+  	!isBlocked(player1InitX, player1InitY, 0, -1, blockRange, zombies) {
+		player1InitY -= moveSpeed
+	}
 
 for i := range zombies {
 
@@ -167,8 +164,8 @@ for i := range zombies {
   //~~> player damage check <~~\\
   hitRange := 80.0
   
-	if abs(zombies[i].x-player1InitX) < hitRange && abs(zombies[i].y-player1InitY) < hitRange {
-
+	if abs(zombies[i].x-player1InitX) < hitRange && 
+	abs(zombies[i].y-player1InitY) < hitRange {
   	if tickCount%150 == 0 {
     	player1hp--
       fmt.Println("hp:", player1hp)
@@ -177,16 +174,16 @@ for i := range zombies {
 
   //~~> sword hit detection <~~\\
   swordHitRange := 30.0
-  if abs(zombies[i].x - swordX) < swordHitRange && abs(zombies[i].y - swordY) < swordHitRange {
-  if (tickCount % 45 == 0){ //attack speed
-		zombies[i].hp--
-		zombies[i].hit = true
-		zombies[i].hitTimer = 8
-  	fmt.Println("Zombie", i, "hp:", zombies[i].hp)
-		}
-  }
-}
-	
+  if abs(zombies[i].x - swordX) < swordHitRange && 
+	abs(zombies[i].y - swordY) < swordHitRange {
+  	if (tickCount % 45 == 0){ //attack speed
+			zombies[i].hp--
+			zombies[i].hit = true
+			zombies[i].hitTimer = 8
+  		fmt.Println("Zombie", i, "hp:", zombies[i].hp)
+			}
+  	}
+	}	
 	return nil
 }
 

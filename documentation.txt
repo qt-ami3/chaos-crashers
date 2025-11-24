@@ -1,0 +1,33 @@
+formatting:
+
+  user variables and functions are written in camel case while the ebitengine is generally pretty inconsisten.
+
+Character naming conventions:
+
+  specific sprites & enemy stats will be more exact perhapse even "verbose" such as; axeZombie whereas an array of it might be less descriptive like 'zombies'.
+
+directional logic:
+
+  in the case of where a model is facing or the direction of movement needs to be tracked, a direction of movement will declare a rune variable using wasd to exspress direction. for model direction, assets face right, so by default, declare xFacingRight as a bool and set to true.
+
+location & relativeity:
+
+  the window size initializes using the screenHeight & screenWidth variables in the var section of the main.go file. determining locations to draw images should prioritize using these two variable as apart of they're formula.
+
+functions:
+
+  functions should avoid calling on other functions unless it would aim to alleviate;
+
+  function size, functions should avoid or aim for 50 lines maximum.
+
+  recursion should be avoided.
+
+if & switch statements:
+
+  if you the reader see several if statement that you think you could optimize by changing into a switch statement, dont. repetitive if statements are necesary for movement whereas a switch statement simple cannot be used for omni-directional movement.
+
+file paths:
+
+  relative only.
+
+

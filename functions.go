@@ -9,7 +9,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
 
-func spawnZombies(speedSelect float64) {
+func spawnAxeZombies(speedSelect float64) {
   count := randInt(3, 6)
 
   for i := 0; i < count; i++ {
