@@ -26,12 +26,11 @@ var ( //declvare variable for images, name *ebiten.Image.
 	swordX float64
 	swordY float64
 
-	player1hp = 20
-
 	tickCount = 0 //for game time keeping
 
 	zombies []axeZombie
 
+	player1hp = 20
 	swordLocation = rune ('s') //a = left, d = right, s = down, w = up
 	hitFrameDuration = int(0)
 	playerAttackActive = bool(false)
@@ -82,7 +81,7 @@ func (g *Game) Update() error { //game logic
 		fmt.Println("frame", tickCount)
 	}
 
-	for i := range zombies {
+	for i := range zombies { //keeps track of how long zombies should be "hit" for
     if zombies[i].hitTimer > 0 {
       zombies[i].hitTimer--
       zombies[i].hit = true
@@ -91,10 +90,12 @@ func (g *Game) Update() error { //game logic
     }
 	}
 
-	if hitFrameDuration == 0 {
+	if hitFrameDuration == 0 { //makes enemy vulnerable and ends active player attack.
 		for i := range zombies {
-			zombies[i].invulnerable = false
-			playerAttackActive = false
+			if zombies[i].hitTimer == 0 {
+				zombies[i].invulnerable = false
+				playerAttackActive = false
+			}
 		}
 	}
 
@@ -207,7 +208,7 @@ func (g *Game) Update() error { //game logic
 		abs(zombies[i].y - swordY) < swordHitRange && playerAttackActive == true {
 			zombies[i].hp--
 			zombies[i].hit = true
-			zombies[i].hitTimer = 8
+			zombies[i].hitTimer = hitFrameDuration
   		fmt.Println("Zombie", i, "hp:", zombies[i].hp)
 		}
 
