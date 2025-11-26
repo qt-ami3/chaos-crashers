@@ -13,14 +13,15 @@ var ( //declvare variable for images, name *ebiten.Image.
 	player1 *ebiten.Image
 	sword *ebiten.Image
 
-	axeZombieSprites []*ebiten.Image
-	axeZombieHitSprites []*ebiten.Image	
+	axeZombieSprites []*ebiten.Image //an array of image files means it for a animation
+	axeZombieHitSprites []*ebiten.Image	//see functions.go
 
 	screenHeight = 1080
 	screenWidth = 1920
 
 	player1InitX = float64(560)
 	player1InitY = float64(240)
+
 	axeZombieInitXTemp = float64 (randFloat(1,100))
 	axeZombieInitYTemp = float64 (randFloat(1,100))
 	swordX float64
@@ -34,6 +35,7 @@ var ( //declvare variable for images, name *ebiten.Image.
 	swordLocation = rune ('s') //a = left, d = right, s = down, w = up
 	hitFrameDuration = int(0)
 	playerAttackActive = bool(false)
+	playerAttackFrames = int(20) //frame length of player attack. hit frame duration will call to this at runtime, do not use magic numbers.
 )
 
 type Game struct{}
@@ -77,7 +79,9 @@ func init() { //initialize images to variables here.
 
 func (g *Game) Update() error { //game logic
 
-	if tickCount % 60 == 0 {
+	tickCount++
+
+	if tickCount % 60 == 0 { //prints every 60 frames for time keeping.
 		fmt.Println("frame", tickCount)
 	}
 
@@ -99,34 +103,32 @@ func (g *Game) Update() error { //game logic
 		}
 	}
 
-	tickCount++
-
 	//~~> sword direction logic <~~\\
 
-	switch {
+	switch { //player sword controls
 		case ebiten.IsKeyPressed(ebiten.KeyArrowRight):
 			swordLocation = 'd'
 			if hitFrameDuration == 0 {
-				hitFrameDuration = 9
+				hitFrameDuration = playerAttackFrames
 			}
 		case ebiten.IsKeyPressed(ebiten.KeyArrowLeft):	
 			swordLocation = 'a'
 			if hitFrameDuration == 0 {
-				hitFrameDuration = 9
+				hitFrameDuration = playerAttackFrames
 			}	
 		case ebiten.IsKeyPressed(ebiten.KeyArrowDown):	
 			swordLocation = 's'
 			if hitFrameDuration == 0 {
-				hitFrameDuration = 9
+				hitFrameDuration = playerAttackFrames
 			}
 		case ebiten.IsKeyPressed(ebiten.KeyArrowUp):
 			swordLocation = 'w'
 			if hitFrameDuration == 0 {
-				hitFrameDuration = 9
+				hitFrameDuration = playerAttackFrames
 			}
 	}
 
-	switch {
+	switch { //player sword direction logic, effected by player sword controls above
 		case swordLocation == 'd':
 			swordX = float64 (player1InitX + 100)
 			swordY = float64 (player1InitY)
@@ -141,8 +143,8 @@ func (g *Game) Update() error { //game logic
 			swordY = float64 (player1InitY - 100)
 	}
 	
-	moveSpeed := 3.0
-	blockRange := 35.0 //collusion stat
+	moveSpeed := 3.0 //player move speed
+	blockRange := 35.0 //player collusion stat
 
 	// MOVE RIGHT (D)
 	if ebiten.IsKeyPressed(ebiten.KeyD) &&
@@ -168,7 +170,7 @@ func (g *Game) Update() error { //game logic
 		player1InitY -= moveSpeed
 	}
 
-	for i := range zombies {
+	for i := range zombies { //zombie ai / logic
 
 		if zombies[i].hp <= 0 {
 			continue
@@ -196,16 +198,11 @@ func (g *Game) Update() error { //game logic
     	fmt.Println("hp:", player1hp) 
   	}
 
-  	//~~> sword hit detection <~~\\
-  	if hitFrameDuration > 0 {
-			playerAttackActive = true
-			hitFrameDuration--
-		}
-
 		swordHitRange := 30.0
 
   	if abs(zombies[i].x - swordX) < swordHitRange && zombies[i].invulnerable == false &&
-		abs(zombies[i].y - swordY) < swordHitRange && playerAttackActive == true {
+		abs(zombies[i].y - swordY) < swordHitRange && playerAttackActive == true && 
+		zombies[i].hitTimer <= 0 {
 			zombies[i].hp--
 			zombies[i].hit = true
 			zombies[i].hitTimer = hitFrameDuration
@@ -215,6 +212,12 @@ func (g *Game) Update() error { //game logic
 		if zombies[i].hit == true {
 			zombies[i].invulnerable = true
 		}
+	}
+
+  //~~> sword hit detection <~~\\
+  if hitFrameDuration > 0 {
+		playerAttackActive = true
+		hitFrameDuration--
 	}
 
 	return nil
