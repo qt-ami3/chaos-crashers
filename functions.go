@@ -89,6 +89,20 @@ func enemyMovement(targetX, targetY, x, y, speed float64, knockBackSpeed float64
  return x + dx, y + dy
 }
 
+func loadSwordSprites() {
+  swordSprites = make([]*ebiten.Image, 15)
+
+  for i := 1; i <= 15; i++ {
+    filename := fmt.Sprintf("assets/sprites/swordSwing/coin%d.png", i)
+
+    img, _, err := ebitenutil.NewImageFromFile(filename)
+    if err != nil {
+    log.Fatal(err)
+    }
+    swordSprites[i-1] = img
+	}
+}
+
 func loadAxeZombieSprites() {
   axeZombieSprites = make([]*ebiten.Image, 8)
 

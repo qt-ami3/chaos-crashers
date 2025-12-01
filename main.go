@@ -11,7 +11,7 @@ import (
 var ( //declvare variable for images, name *ebiten.Image.
 	background *ebiten.Image
 	player1 *ebiten.Image
-	sword *ebiten.Image
+	swordSprites []*ebiten.Image
 
 	axeZombieSprites []*ebiten.Image //an array of image files means it for a animation
 	axeZombieHitSprites []*ebiten.Image	//see functions.go
@@ -35,7 +35,8 @@ var ( //declvare variable for images, name *ebiten.Image.
 	swordLocation = rune ('s') //a = left, d = right, s = down, w = up
 	hitFrameDuration = int(0)
 	playerAttackActive = bool(false)
-	playerAttackFrames = int(20) //frame length of player attack. hit frame duration will call to this at runtime, do not use magic numbers.
+	playerAttackFrames = int(15) //frame length of player attack. hit frame duration will call to this at runtime, do not use magic numbers.
+	playerAttackFramesTimer = int(0)
 )
 
 type Game struct{}
@@ -63,15 +64,11 @@ func init() { //initialize images to variables here.
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	sword, _, err = ebitenutil.NewImageFromFile("assets/images/sword.png") //will not run if empty
-	if err != nil {
-		log.Fatal(err)
-	}
 	
 	//~~> animation functions <~~\\
 	loadAxeZombieSprites()
 	loadAxeZombieHitSprites()
+	loadSwordSprites()
 
 
 	spawnAxeZombies(0.7) //loads zombies, condition changes zombie speed.
@@ -110,6 +107,7 @@ func (g *Game) Update() error { //game logic
 			swordLocation = 'd'
 			if hitFrameDuration == 0 {
 				hitFrameDuration = playerAttackFrames
+				playerAttackFramesTimer = playerAttackFrames - 1
 			}
 		case ebiten.IsKeyPressed(ebiten.KeyArrowLeft):	
 			swordLocation = 'a'
@@ -238,8 +236,6 @@ func (g *Game) Draw(screen *ebiten.Image) {  //called every frame, graphics.
 
 	screen.DrawImage(player1, op)	
 
-	screen.DrawImage(sword, opSword)
-
 	frame := (tickCount / 8) % len(axeZombieSprites)
 	axeZombieSpriteFrame := axeZombieSprites[frame]
 	axeZombieHitSpriteFrame := axeZombieHitSprites[frame]
@@ -268,6 +264,13 @@ func (g *Game) Draw(screen *ebiten.Image) {  //called every frame, graphics.
   			screen.DrawImage(axeZombieSpriteFrame, op)
 			}
 		}
+	}
+
+	if playerAttackFramesTimer > 0 {
+		screen.DrawImage(swordSprites[playerAttackFramesTimer], opSword)
+		playerAttackFramesTimer--
+	} else {
+		screen.DrawImage(swordSprites[1], opSword)
 	}
 }
 
