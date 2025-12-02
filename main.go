@@ -33,12 +33,13 @@ var ( //declvare variable for images, name *ebiten.Image.
 
 	player1hp = 20
 	hitFrameDuration = int(0)
+	playerAttackCount = int (0)
 	playerAttackFrames = int(15) //frame length of player attack. hit frame duration will call to this at runtime, do not use magic numbers.
 	playerAttackFramesTimer = int(0)		
 	swordLocation = rune ('s') //a = left, d = right, s = down, w = up
 	playerAttackActive = bool(false)
+	playerAttackFlipped = bool(false)
 	playerAttackFramesStart = bool(false)
-	playerAttackCount = int(1) //for determining if attack animation should be flipped or not
 )
 
 type Game struct{}
@@ -268,16 +269,43 @@ func (g *Game) Draw(screen *ebiten.Image) {  //called every frame, graphics.
 		}
 	}
 
-	if playerAttackFramesStart == true { //detects if attack has been initiated
-		if playerAttackFramesTimer == playerAttackFrames { //statement to end attack
-			playerAttackFramesTimer = 0
-			playerAttackFramesStart = false
-		} else if playerAttackFramesTimer != playerAttackFrames { //statement to start or continue attack
-			screen.DrawImage(swordSprites[playerAttackFramesTimer], opSword)
-			playerAttackFramesTimer++
+
+if playerAttackFramesStart == true { // detects if attack has started	
+	if playerAttackFramesTimer == playerAttackFrames { // end attack
+    playerAttackFramesTimer = 0
+    playerAttackFramesStart = false
+		playerAttackFlipped = (playerAttackCount % 2 == 0)
+	} else { // continue attack
+			op := &ebiten.DrawImageOptions{} // Create a fresh draw options
+
+    	frameImg := swordSprites[playerAttackFramesTimer]
+			
+    if playerAttackFlipped { // Flip vertically when divisible by 2
+    	h := float64(frameImg.Bounds().Dy())
+    	op.GeoM.Scale(1, -1)
+    	op.GeoM.Translate(swordX, swordY+h)
+    	} else {
+      	op.GeoM.Translate(swordX, swordY)
+    	}
+			
+			screen.DrawImage(frameImg, op)
+
+    	playerAttackFramesTimer++
+			playerAttackCount++
 		}
+} else { // idle sword frame
+	op := &ebiten.DrawImageOptions{}
+	frameImg := swordSprites[0]
+
+	if playerAttackFlipped { // flip idle frame based on last attack
+		h := float64(frameImg.Bounds().Dy())
+		op.GeoM.Scale(1, -1)
+		op.GeoM.Translate(swordX, swordY+h)
 	} else {
-		screen.DrawImage(swordSprites[0], opSword)
+		op.GeoM.Translate(swordX, swordY)
+	}
+
+	screen.DrawImage(frameImg, op)
 	}
 }
 
