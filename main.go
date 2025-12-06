@@ -106,27 +106,22 @@ func (g *Game) Update() error { //game logic
 	//~~> sword direction logic <~~\\
 
 	switch { //player sword controls
-		case ebiten.IsKeyPressed(ebiten.KeyArrowRight):
+		case ebiten.IsKeyPressed(ebiten.KeyArrowRight) && hitFrameDuration == 0:
 			swordLocation = 'd'
-			if hitFrameDuration == 0 {
-				hitFrameDuration = playerAttackFrames
-				playerAttackFramesStart = true
-			}
-		case ebiten.IsKeyPressed(ebiten.KeyArrowLeft):	
+			hitFrameDuration = playerAttackFrames
+			playerAttackFramesStart = true
+		case ebiten.IsKeyPressed(ebiten.KeyArrowLeft) && hitFrameDuration == 0:
 			swordLocation = 'a'
-			if hitFrameDuration == 0 {
-				hitFrameDuration = playerAttackFrames
-			}	
-		case ebiten.IsKeyPressed(ebiten.KeyArrowDown):	
+			hitFrameDuration = playerAttackFrames
+			playerAttackFramesStart = true
+		case ebiten.IsKeyPressed(ebiten.KeyArrowDown) && hitFrameDuration == 0:
 			swordLocation = 's'
-			if hitFrameDuration == 0 {
-				hitFrameDuration = playerAttackFrames
-			}
-		case ebiten.IsKeyPressed(ebiten.KeyArrowUp):
+			hitFrameDuration = playerAttackFrames
+			playerAttackFramesStart = true
+		case ebiten.IsKeyPressed(ebiten.KeyArrowUp) && hitFrameDuration == 0:
 			swordLocation = 'w'
-			if hitFrameDuration == 0 {
-				hitFrameDuration = playerAttackFrames
-			}
+			hitFrameDuration = playerAttackFrames
+			playerAttackFramesStart = true	
 	}
 
 	switch { //player sword direction logic, effected by player sword controls above
@@ -281,11 +276,26 @@ if playerAttackFramesStart == true { // detects if attack has started
     	frameImg := swordSprites[playerAttackFramesTimer]
 			
     if playerAttackFlipped { // Flip vertically when divisible by 2
-    	h := float64(frameImg.Bounds().Dy())
-    	op.GeoM.Scale(1, -1)
-    	op.GeoM.Translate(swordX, swordY+h)
-    	} else {
-      	op.GeoM.Translate(swordX, swordY)
+			switch {
+				case swordLocation == 'd':
+	    		h := float64(frameImg.Bounds().Dy())
+    			op.GeoM.Scale(1, -1)
+    			op.GeoM.Translate(swordX, swordY+h)
+				case swordLocation == 'a':
+    			w := float64(frameImg.Bounds().Dx())
+    			h := float64(frameImg.Bounds().Dy())
+    			op.GeoM.Scale(-1, -1)
+    			op.GeoM.Translate(swordX + w, swordY + h)
+			}
+    } else {
+      	switch {
+      	case swordLocation == 'd':
+      		op.GeoM.Translate(swordX, swordY)
+				case swordLocation == 'a':
+					w := float64(frameImg.Bounds().Dx())
+					op.GeoM.Scale(-1,1)
+					op.GeoM.Translate(swordX + w, swordY)	
+      	}
     	}
 			
 			screen.DrawImage(frameImg, op)
