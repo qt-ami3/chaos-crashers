@@ -14,7 +14,7 @@ import (
 )
 
 func spawnAxeZombies(speedSelect float64) {
-  count := randInt(3, 6)
+  count := randInt(7, 7)
 
   for i := 0; i < count; i++ {
     z := axeZombie{
@@ -25,35 +25,56 @@ func spawnAxeZombies(speedSelect float64) {
     speed: speedSelect,
 		facingRight: true,
 		invulnerable: false,
-		walkFrame: randInt(1, len(axeZombieSprites)),
-		walkTimer: 0,
+		walkFrame: randInt(0, (len(axeZombieSprites) - 1)),
+		hitFrame: 1,
+		inHitAnimation: false,
     }
     
 		zombies = append(zombies, z)
   }
 }
 
+func zombieHitAnimationUpdate(animationSpeed float64) {
+	for i := range zombies {
+		z := &zombies[i]
 
+		// Only update if the zombie is in hit animation
+		if !z.inHitAnimation {
+			continue
+		}
 
-func zombieWalkCycleUpdate() {
-  for i := range zombies {
-    z := &zombies[i]
-    z.walkTimer++ // advance timer
+		z.hitAnimTimer++
 
-    // change animation frame every X ticks
-    const walkSpeed = 10 // higher == slower animation
+		if z.hitAnimTimer >= animationSpeed {
+			z.hitAnimTimer = 0
+			z.hitFrame++
 
-    if z.walkTimer >= walkSpeed {
-      z.walkTimer = 0
-      z.walkFrame++
-
-      if z.walkFrame >= len(axeZombieSprites) {
-        z.walkFrame = 1
-      }
-    }
-  }
+			if z.hitFrame >= len(axeZombieHitSprites) {
+				// Hit animation finished
+				z.hitFrame = 0
+				z.inHitAnimation = false
+				z.hit = false
+			}
+		}
+	}
 }
 
+func zombieWalkCycleUpdate(animationSpeed float64) {
+	for i := range zombies {
+		z := &zombies[i]
+
+		// increment timer
+		z.walkTimer++
+		
+		if z.walkTimer >= animationSpeed {
+			z.walkTimer = 0
+			z.walkFrame++
+			if z.walkFrame >= len(axeZombieSprites) {
+				z.walkFrame = 0
+			}
+		}
+	}
+}
 
 
 func GetSelfRAM() float64 {
