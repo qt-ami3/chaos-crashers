@@ -21,14 +21,6 @@ var ( //declvare variable for images, name *ebiten.Image.
 	screenHeight = 1080
 	screenWidth = 1920
 
-	player1InitX = float64(560)
-	player1InitY = float64(240)
-
-	axeZombieInitXTemp = float64 (randFloat(1,100))
-	axeZombieInitYTemp = float64 (randFloat(1,100))
-	swordX float64
-	swordY float64
-	
 	//lower is faster
 	axeZombieAnimationSpeed = float64(10)
 	axeZombieHitAnimationSpeed = float64(5)
@@ -38,19 +30,55 @@ var ( //declvare variable for images, name *ebiten.Image.
 	tickCount = 0 //for game time keeping
 
 	zombies []axeZombie
-
-	player1hp = 20
-	hitFrameDuration = int(0)
-	playerAttackCount = int (0)
-	playerAttackFrames = int(15) //frame length of player attack. hit frame duration will call to this at runtime, do not use magic numbers.
-	playerAttackFramesTimer = int(0)		
-	swordLocation = rune ('s') //a = left, d = right, s = down, w = up
-	playerAttackActive = bool(false)
-	playerAttackFlipped = bool(false)
-	playerAttackFramesStart = bool(false)
 )
 
 type Game struct{}
+
+
+type player struct {
+	x float64
+	y float64
+
+	swordX float64
+	swordY float64
+
+	hp int
+
+	hitFrameDuration int
+
+	attackCount int
+	attackFrames int
+	attackFramesTimer int
+
+	swordLocation rune // 'a','d','s','w'
+
+	attackActive bool
+	attackFlipped bool
+	attackFramesStart bool
+}
+
+
+var p = player {
+	x: 560,
+	y: 240,
+
+	swordX: 560,
+	swordY: 240 + 100,
+
+	hp: 20,
+
+	hitFrameDuration: 0,
+
+	attackCount: 0,
+	attackFrames: 15,
+	attackFramesTimer: 0,
+
+	swordLocation: 's',
+
+	attackActive: false,
+	attackFlipped: false,
+	attackFramesStart: false,
+}
 
 type axeZombie struct {
 	level         int
@@ -69,6 +97,7 @@ type axeZombie struct {
 	deathAnimationPlayed bool
 	deathAnimationTimer float64
 	deathAnimationFrame int
+	knockbackSpeed	float64
 }
 
 func init() { //initialize images to variables here.
@@ -116,11 +145,11 @@ func (g *Game) Update() error { //game logic
     }
 	}
 
-	if hitFrameDuration == 0 { // prevents player from attacking same enemy.
+	if p.hitFrameDuration == 0 { // prevents player from attacking same enemy.
 		for i := range zombies {
 			if zombies[i].hitTimer == 0 {
 				zombies[i].invulnerable = false
-				playerAttackActive = false
+				p.attackActive = false
 			}
 		}
 	}
@@ -128,37 +157,37 @@ func (g *Game) Update() error { //game logic
 	//~~> sword direction logic <~~\\
 
 	switch { //player sword controls
-		case ebiten.IsKeyPressed(ebiten.KeyArrowRight) && hitFrameDuration == 0:
-			swordLocation = 'd'
-			hitFrameDuration = playerAttackFrames
-			playerAttackFramesStart = true
-		case ebiten.IsKeyPressed(ebiten.KeyArrowLeft) && hitFrameDuration == 0:
-			swordLocation = 'a'
-			hitFrameDuration = playerAttackFrames
-			playerAttackFramesStart = true
-		case ebiten.IsKeyPressed(ebiten.KeyArrowDown) && hitFrameDuration == 0:
-			swordLocation = 's'
-			hitFrameDuration = playerAttackFrames
-			playerAttackFramesStart = true
-		case ebiten.IsKeyPressed(ebiten.KeyArrowUp) && hitFrameDuration == 0:
-			swordLocation = 'w'
-			hitFrameDuration = playerAttackFrames
-			playerAttackFramesStart = true	
+		case ebiten.IsKeyPressed(ebiten.KeyArrowRight) && p.hitFrameDuration == 0:
+			p.swordLocation = 'd'
+			p.hitFrameDuration = p.attackFrames
+			p.attackFramesStart = true
+		case ebiten.IsKeyPressed(ebiten.KeyArrowLeft) && p.hitFrameDuration == 0:
+			p.swordLocation = 'a'
+			p.hitFrameDuration = p.attackFrames
+			p.attackFramesStart = true
+		case ebiten.IsKeyPressed(ebiten.KeyArrowDown) && p.hitFrameDuration == 0:
+			p.swordLocation = 's'
+			p.hitFrameDuration = p.attackFrames
+			p.attackFramesStart = true
+		case ebiten.IsKeyPressed(ebiten.KeyArrowUp) && p.hitFrameDuration == 0:
+			p.swordLocation = 'w'
+			p.hitFrameDuration = p.attackFrames
+			p.attackFramesStart = true	
 	}
 
 	switch { //player sword direction logic, effected by player sword controls above
-		case swordLocation == 'd':
-			swordX = float64 (player1InitX + 100)
-			swordY = float64 (player1InitY)
-		case swordLocation == 'a':
-			swordX = float64 (player1InitX - 100)
-			swordY = float64 (player1InitY)
-		case swordLocation == 's':
-			swordX = float64 (player1InitX)
-			swordY = float64 (player1InitY + 100)
-		case swordLocation == 'w':
-			swordX = float64 (player1InitX)
-			swordY = float64 (player1InitY - 100)
+		case p.swordLocation == 'd':
+			p.swordX = p.x + 100
+			p.swordY = p.y
+		case p.swordLocation == 'a':
+			p.swordX = p.x - 100
+			p.swordY = p.y
+		case p.swordLocation == 's':
+			p.swordX = p.x
+			p.swordY = p.y + 100
+		case p.swordLocation == 'w':
+			p.swordX = p.x
+			p.swordY = p.y - 100
 	}
 	
 	moveSpeed := 3.0 //player move speed
@@ -166,26 +195,26 @@ func (g *Game) Update() error { //game logic
 
 	// MOVE RIGHT (D)
 	if ebiten.IsKeyPressed(ebiten.KeyD) &&
-  !isBlocked(player1InitX, player1InitY, 1, 0, blockRange, zombies) {
-  	player1InitX += moveSpeed
+  !isBlocked(p.x, p.y, 0, -1, blockRange, zombies) {
+  	p.x += moveSpeed
 	}
 
 	// MOVE LEFT (A)
 	if ebiten.IsKeyPressed(ebiten.KeyA) &&
-  !isBlocked(player1InitX, player1InitY, -1, 0, blockRange, zombies) {
-  	player1InitX -= moveSpeed
+  !isBlocked(p.x, p.y, -1, 0, blockRange, zombies) {
+  	p.x -= moveSpeed
 	}
 
 	// DOWN (S)
 	if ebiten.IsKeyPressed(ebiten.KeyS) &&
-  !isBlocked(player1InitX, player1InitY, 0, 1, blockRange, zombies) {
-  	player1InitY += moveSpeed
+  !isBlocked(p.x, p.y, 0, -1, blockRange, zombies) {
+  	p.y += moveSpeed
 	}
 
 	// UP (W)
 	if ebiten.IsKeyPressed(ebiten.KeyW) &&
-  !isBlocked(player1InitX, player1InitY, 0, -1, blockRange, zombies) {
-		player1InitY -= moveSpeed
+  !isBlocked(p.x, p.y, 0, -1, blockRange, zombies) {
+		p.y -= moveSpeed
 	}
 
 	for i := range zombies { //zombie ai / logic
@@ -196,13 +225,13 @@ func (g *Game) Update() error { //game logic
 		
   	// movement (once per zombie)
   	zombies[i].x, zombies[i].y = enemyMovement(
-  		player1InitX,
-    	player1InitY,
+  		p.x,
+    	p.y,
     	zombies[i].x,
     	zombies[i].y,
     	zombies[i].speed,
-			3,
-			swordLocation,
+			zombies[i].knockbackSpeed,
+			p.swordLocation,
     	zombies,
     	i,
   	)
@@ -210,21 +239,21 @@ func (g *Game) Update() error { //game logic
   	//~~> player damage check <~~\\
   	hitRange := 80.0
   	
-		if abs(zombies[i].x-player1InitX) < hitRange && 
-		abs(zombies[i].y-player1InitY) < hitRange && tickCount % 150 == 0 {	
-    	player1hp--
-    	fmt.Println("hp:", player1hp) 
+		if abs(zombies[i].x - p.x) < hitRange && 
+		abs(zombies[i].y - p.y) < hitRange && tickCount % 150 == 0 {	
+    	p.hp--
+    	fmt.Println("hp:", p.hp) 
   	}
 
 		swordHitRange := 30.0
 
-  	if abs(zombies[i].x - swordX) < swordHitRange && !zombies[i].invulnerable &&
-		abs(zombies[i].y - swordY) < swordHitRange && playerAttackActive && 
+  	if abs(zombies[i].x - p.swordX) < swordHitRange && !zombies[i].invulnerable &&
+		abs(zombies[i].y - p.swordY) < swordHitRange && p.attackActive && 
 		zombies[i].hitTimer <= 0 {
 			zombies[i].hp--
 			zombies[i].hit = true
 			zombies[i].inHitAnimation = true
-			zombies[i].hitTimer = hitFrameDuration
+			zombies[i].hitTimer = p.hitFrameDuration
 			zombies[i].hitFrame = 0
 			zombies[i].hitAnimTimer = 0
 			zombies[i].invulnerable = true
@@ -236,9 +265,9 @@ func (g *Game) Update() error { //game logic
 		}
 	}
 
-    if hitFrameDuration > 0 {
-		playerAttackActive = true
-		hitFrameDuration--
+    if p.hitFrameDuration > 0 {
+		p.attackActive = true
+		p.hitFrameDuration--
 	}
 
 	return nil
@@ -249,9 +278,9 @@ func (g *Game) Draw(screen *ebiten.Image) {  //called every frame, graphics.
 	screen.DrawImage(background, nil)
 
 	op := &ebiten.DrawImageOptions{}
-	op.GeoM.Translate(player1InitX,player1InitY)
+	op.GeoM.Translate(p.x, p.y)
 	opSword := &ebiten.DrawImageOptions{}
-	opSword.GeoM.Translate(swordX, swordY)
+	opSword.GeoM.Translate(p.swordX, p.swordY)
 	screen.DrawImage(player1, op)	
 
 	for i := range zombies {
@@ -282,14 +311,14 @@ func (g *Game) Draw(screen *ebiten.Image) {  //called every frame, graphics.
 		}
 	}
 
-	if playerAttackFramesStart { // detects if player attack has started
-  	if playerAttackFramesTimer == playerAttackFrames { // end of attack
-    	playerAttackFramesTimer = 0
-    	playerAttackFramesStart = false
-    	playerAttackFlipped = (playerAttackCount % 2 == 0)
+	if p.attackFramesStart { // detects if player attack has started
+  	if p.attackFramesTimer == p.attackFrames { // end of attack
+    	p.attackFramesTimer = 0
+    	p.attackFramesStart = false
+    	p.attackFlipped = (p.attackCount % 2 == 0)
   	} else { // continue attack
 			op := &ebiten.DrawImageOptions{}
-  		frameImg := swordSprites[playerAttackFramesTimer]
+  		frameImg := swordSprites[p.attackFramesTimer]
 
   		w := float64(frameImg.Bounds().Dx()) // Dimensions
   		h := float64(frameImg.Bounds().Dy())
@@ -298,7 +327,7 @@ func (g *Game) Draw(screen *ebiten.Image) {  //called every frame, graphics.
 
 			var angle float64 // Determine angle (base sprite faces RIGHT)
   		
-			switch swordLocation {
+			switch p.swordLocation {
     		case 'd': // right
       		angle = 0
     		case 'a': // left
@@ -312,7 +341,7 @@ func (g *Game) Draw(screen *ebiten.Image) {  //called every frame, graphics.
 			scaleX := 1.0 // Apply vertical flipping if attack count requires
     	scaleY := 1.0
     		
-			if playerAttackFlipped {
+			if p.attackFlipped {
       	scaleY = -1.0
     	}
 			
@@ -322,12 +351,12 @@ func (g *Game) Draw(screen *ebiten.Image) {  //called every frame, graphics.
 			
     	op.GeoM.Rotate(angle) //Rotate
 
-    	op.GeoM.Translate(swordX+cx, swordY+cy) // Move final position (centered)
+    	op.GeoM.Translate(p.swordX + cx, p.swordY + cy) // Move final position (centered)
 
     	screen.DrawImage(frameImg, op)
 			
-    	playerAttackFramesTimer++
-    	playerAttackCount++
+    	p.attackFramesTimer++
+    	p.attackCount++
   	}
 	} else { // idle sword frame
     op := &ebiten.DrawImageOptions{}
@@ -340,13 +369,13 @@ func (g *Game) Draw(screen *ebiten.Image) {  //called every frame, graphics.
 
     scaleX := 1.0
     scaleY := 1.0
-    if playerAttackFlipped {
+    if p.attackFlipped {
       scaleY = -1.0
     }
 
     var angle float64 // Idle frame always faces whatever swordLocation was last set to
 
-  	switch swordLocation {
+  	switch p.swordLocation {
     	case 'd':
       	angle = 0
     	case 'a':
@@ -360,7 +389,7 @@ func (g *Game) Draw(screen *ebiten.Image) {  //called every frame, graphics.
     op.GeoM.Translate(-cx, -cy)
     op.GeoM.Scale(scaleX, scaleY)
     op.GeoM.Rotate(angle)
-    op.GeoM.Translate(swordX+cx, swordY+cy)
+    op.GeoM.Translate(p.swordX + cx, p.swordY + cy)
 
     screen.DrawImage(frameImg, op)
 	}

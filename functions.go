@@ -31,6 +31,7 @@ func spawnAxeZombies(speedSelect float64) {
 		deathAnimationPlayed: false,
 		deathAnimationTimer: 0,
 		deathAnimationFrame: 0,
+		knockbackSpeed: 5,
     }
     
 		zombies = append(zombies, z)
