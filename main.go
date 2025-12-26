@@ -19,7 +19,7 @@ var ( //declvare variable for images, name *ebiten.Image.
 	axeZombieHitSprites []*ebiten.Image	//see functions.go
 
 	screenHeight = 540
-	screenWidth = 960
+	screenWidth = 914
 
 	//lower is faster
 	axeZombieAnimationSpeed = float64(10)
@@ -338,7 +338,7 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 
 func main() {
 	ebiten.SetWindowSize(screenWidth, screenHeight)
-	ebiten.SetWindowTitle("Render an image")
+	ebiten.SetWindowTitle("Chaos Crashers")
 	
 	if err := ebiten.RunGame(&Game{}); err != nil { 
 		log.Fatal(err)
