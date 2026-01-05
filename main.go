@@ -30,6 +30,8 @@ var ( //declvare variable for images, name *ebiten.Image.
 	tickCount = 0 //for game time keeping
 
 	zombies []axeZombie
+	
+	floorInit = bool(false)
 )
 
 type Game struct{}
@@ -49,7 +51,7 @@ type player struct {
 	attackFrames int
 	attackFramesTimer int
 
-	swordLocation rune // 'a','d','s','w'
+	swordLocation rune //wasd
 
 	attackActive bool
 	attackFlipped bool
@@ -123,6 +125,16 @@ func init() { //initialize images to variables here.
 func (g *Game) Update() error { //game logic
 
 	tickCount++
+
+	if !floorInit {
+		var floor [12][12]int
+		floor[12/2][12/2] = 1
+		for range randInt(5,10) {
+			initFloor(&floor)
+		}
+
+		floorInit = true
+	}
 
 	if tickCount % 60 == 0 { //prints every 60 frames for time keeping.
 		fmt.Println("frame", tickCount, ",", "RAM: ", GetSelfRAM(), "MB")

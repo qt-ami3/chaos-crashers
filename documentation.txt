@@ -31,3 +31,27 @@ if & switch statements:
 file paths:
 
   relative only.
+
+subtractive design:
+  
+  -limit your initial charecter classes.
+
+  -try to base mechanics as heavily around one centreal mechanic as heavily as possible
+    genre descoping; taking an element from one, larger genre & and focus in on it to make more scope resistent features that still maintain the same appeal
+
+uniqueness from the start:
+
+  always start a run with something unique like a different sword, buff, or level challenge/modifier
+
+dungeon generation:
+
+  The size of a dungeon is 12 * 12
+    12 * 12 == 144
+    (12 * 12) / 2 == 72
+    (12 * 12) / 4 == 36
+    etc...
+  this is a good size to build the codebase on, allowing room for implementation of newer features in the future without major overhauls of the codebase. 
+  it also ensures that we wont suffer from scope creep.
+
+  during floor initialization stage at update function in main.go
+    call initFloor() in for loop for range randint(minimum, maximum room count for current floor).
