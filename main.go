@@ -6,10 +6,11 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"math"
 )
 
-var ( //declvare variable for images, name *ebiten.Image.
+var ( //declare variable for images, name *ebiten.Image.
 	background *ebiten.Image
 	player1 *ebiten.Image
 	swordSprites []*ebiten.Image
@@ -18,8 +19,8 @@ var ( //declvare variable for images, name *ebiten.Image.
 	axeZombieSprites []*ebiten.Image //an array of image files means it for a animation
 	axeZombieHitSprites []*ebiten.Image	//see functions.go
 
-	screenHeight = 540
-	screenWidth = 914
+	screenHeight = 540 //* 1.5 //= 810
+	screenWidth = 960 //* 1.5 //= 1440
 
 	//lower is faster
 	axeZombieAnimationSpeed = float64(10)
@@ -30,11 +31,21 @@ var ( //declvare variable for images, name *ebiten.Image.
 	tickCount = 0 //for game time keeping
 
 	zombies []axeZombie
-	
-	floorInit = bool(false)
 )
 
 type Game struct{}
+
+type Camera struct {
+	x float64
+	y float64
+	following bool
+}
+
+var cam = Camera{
+	x: 0,
+	y: 0,
+	following: true,
+}
 
 type player struct {
 	x float64
@@ -51,7 +62,7 @@ type player struct {
 	attackFrames int
 	attackFramesTimer int
 
-	swordLocation rune //wasd
+	swordLocation rune // 'a','d','s','w'
 
 	attackActive bool
 	attackFlipped bool
@@ -119,21 +130,17 @@ func init() { //initialize images to variables here.
 	loadSwordSprites()
 	loadAxeZombieDeathSprites()
 
-	spawnAxeZombies(axeZombieLiteralSpeed) //loads zombies, condition changes zombie speed.
+	spawnAxeZombies() //loads zombies, condition changes zombie speed.
 }
 
 func (g *Game) Update() error { //game logic
 
 	tickCount++
 
-	if !floorInit {
-		var floor [12][12]int
-		floor[12/2][12/2] = 1
-		for range randInt(5,10) {
-			initFloor(&floor)
-		}
-
-		floorInit = true
+	// Toggle camera following with C key
+	if inpututil.IsKeyJustPressed(ebiten.KeyC) {
+		cam.following = !cam.following
+		fmt.Println("Camera following:", cam.following)
 	}
 
 	if tickCount % 60 == 0 { //prints every 60 frames for time keeping.
@@ -217,49 +224,59 @@ func (g *Game) Update() error { //game logic
 		p.y -= moveSpeed
 	}
 
+	if cam.following { // Update camera to follow player
+		playerWidth := float64(player1.Bounds().Dx()) // Get player sprite dimensions for proper centering
+		playerHeight := float64(player1.Bounds().Dy())
+		
+		cam.x = p.x + playerWidth / 2 - float64(screenWidth) / 3
+		cam.y = p.y + playerHeight / 2 - float64(screenHeight) / 2.35
+	}
+
 	zombieLogic()
 
 	return nil
 }
 
-func (g *Game) Draw(screen *ebiten.Image) {  //called every frame, graphics.
+func (g *Game) Draw(screen *ebiten.Image) {  //called every frame, graphics
 	
-	screen.DrawImage(background, nil)
+	// Draw background with camera offset
+	opBg := &ebiten.DrawImageOptions{}
+	opBg.GeoM.Translate(-cam.x, -cam.y)
+	screen.DrawImage(background, opBg)
 
+	// Draw player with camera offset
 	op := &ebiten.DrawImageOptions{}
-	op.GeoM.Translate(p.x, p.y)
-	opSword := &ebiten.DrawImageOptions{}
-	opSword.GeoM.Translate(p.swordX, p.swordY)
+	op.GeoM.Translate(p.x - cam.x, p.y - cam.y)
 	screen.DrawImage(player1, op)	
 
+	// Draw zombies with camera offset
 	for i := range zombies {
 		z := &zombies[i]
 
 		op := &ebiten.DrawImageOptions{}
 		w := float64(axeZombieSprites[z.walkFrame].Bounds().Dx())
 
-
-
 		if z.hp <= 0 && !z.deathAnimationPlayed {
-			op.GeoM.Translate(z.x, z.y)
+			op.GeoM.Translate(z.x - cam.x, z.y - cam.y)
 			screen.DrawImage(axeZombieDeathSprites[z.deathAnimationFrame], op)
 		} else if z.hp <= 0 {
 			continue
 		} else if z.inHitAnimation {
-			op.GeoM.Translate(z.x, z.y)
+			op.GeoM.Translate(z.x - cam.x, z.y - cam.y)
 			screen.DrawImage(axeZombieHitSprites[z.hitFrame], op)
 		} else {
 			if !z.facingRight {
 				op.GeoM.Scale(-1, 1)
-				op.GeoM.Translate(z.x + w, z.y)
+				op.GeoM.Translate(z.x + w - cam.x, z.y - cam.y)
 			} else {
-				op.GeoM.Translate(z.x, z.y)
+				op.GeoM.Translate(z.x - cam.x, z.y - cam.y)
 			}
 			
 			screen.DrawImage(axeZombieSprites[z.walkFrame], op)
 		}
 	}
 
+	// Draw sword with camera offset
 	if p.attackFramesStart { // detects if player attack has started
   	if p.attackFramesTimer == p.attackFrames { // end of attack
     	p.attackFramesTimer = 0
@@ -300,7 +317,7 @@ func (g *Game) Draw(screen *ebiten.Image) {  //called every frame, graphics.
 			
     	op.GeoM.Rotate(angle) //Rotate
 
-    	op.GeoM.Translate(p.swordX + cx, p.swordY + cy) // Move final position (centered)
+    	op.GeoM.Translate(p.swordX + cx - cam.x, p.swordY + cy - cam.y) // Move final position (centered) with camera offset
 
     	screen.DrawImage(frameImg, op)
 			
@@ -338,10 +355,13 @@ func (g *Game) Draw(screen *ebiten.Image) {  //called every frame, graphics.
     op.GeoM.Translate(-cx, -cy)
     op.GeoM.Scale(scaleX, scaleY)
     op.GeoM.Rotate(angle)
-    op.GeoM.Translate(p.swordX + cx, p.swordY + cy)
+    op.GeoM.Translate(p.swordX + cx - cam.x, p.swordY + cy - cam.y) // with camera offset
 
     screen.DrawImage(frameImg, op)
 	}
+
+	// Draw camera status
+	ebitenutil.DebugPrint(screen, fmt.Sprintf("Camera Follow: %v (Toggle with C)", cam.following))
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
@@ -350,7 +370,7 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 
 func main() {
 	ebiten.SetWindowSize(screenWidth, screenHeight)
-	ebiten.SetWindowTitle("Chaos Crashers")
+	ebiten.SetWindowTitle("Render an image")
 	
 	if err := ebiten.RunGame(&Game{}); err != nil { 
 		log.Fatal(err)

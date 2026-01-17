@@ -13,8 +13,16 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
 
-func spawnAxeZombies(speedSelect float64) {
-  count := randInt(7, 7)
+func randInt(min, max int) int {
+	return rand.Intn(max-min+1) + min
+}
+
+func randFloat(min, max float64) float64 {
+  return min + rand.Float64()*(max-min)
+}
+
+func spawnAxeZombies() {
+  count := randInt(10, 10)
 
   for i := 0; i < count; i++ {
     z := axeZombie{
@@ -22,7 +30,7 @@ func spawnAxeZombies(speedSelect float64) {
     y:     randFloat(0, float64(screenHeight + 100)),
     hp:    randInt(3, 10),
     level: randInt(1, 3),
-    speed: speedSelect,
+    speed: axeZombieLiteralSpeed,
 		facingRight: true,
 		invulnerable: false,
 		walkFrame: randInt(0, (len(axeZombieSprites) - 1)),
@@ -255,11 +263,6 @@ func abs(f float64) float64 {
   return f
 }
 
-func randFloat(min, max float64) float64 {
-  return min + rand.Float64()*(max-min)
-}
-
-
 func isBlocked(px, py float64, dx, dy float64, blockRange float64, zombies []axeZombie) bool {
   for _, z := range zombies {
   	if z.hp == 0 {
@@ -277,8 +280,4 @@ func isBlocked(px, py float64, dx, dy float64, blockRange float64, zombies []axe
   }
  
 	return false
-}
-
-func randInt(min, max int) int {
-	return rand.Intn(max-min+1) + min
 }
