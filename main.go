@@ -71,8 +71,8 @@ type player struct {
 
 
 var p = player {
-	x: 560,
-	y: 240,
+	x: 200, //init player location
+	y: 90,
 
 	swordX: 560,
 	swordY: 240 + 100,
@@ -136,6 +136,10 @@ func init() { //initialize images to variables here.
 func (g *Game) Update() error { //game logic
 
 	tickCount++
+
+	if tickCount == 2 {
+		cam.following = false
+	}
 
 	// Toggle camera following with C key
 	if inpututil.IsKeyJustPressed(ebiten.KeyC) {
@@ -376,7 +380,7 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 func main() {
 	ebiten.SetWindowSize(screenWidth, screenHeight)
 	ebiten.SetWindowTitle("Chaos Crashers")
-	ebiten.SetFullscreen(true)
+	ebiten.SetFullscreen(false)
 	
 	if err := ebiten.RunGame(&Game{}); err != nil { 
 		log.Fatal(err)
