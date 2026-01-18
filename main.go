@@ -71,8 +71,8 @@ type player struct {
 
 
 var p = player {
-	x: 200, //init player location
-	y: 90,
+	x: 255, //init player location
+	y: 132,	//player position
 
 	swordX: 560,
 	swordY: 240 + 100,
@@ -152,6 +152,8 @@ func (g *Game) Update() error { //game logic
 		for i := range zombies {
 			fmt.Println("axe zombie" ,i ," frame: ", zombies[i].walkFrame)
 		}
+		fmt.Println("player x: ", p.x)
+		fmt.Println("player y:  ", p.y)
 	}
 
 	if p.hitFrameDuration == 0 { // prevents player from attacking same enemy.
@@ -249,7 +251,7 @@ func (g *Game) Draw(screen *ebiten.Image) {  //called every frame, graphics
 	// Calculate scale factors to fit the background to screen
 	
 	// Apply scaling first, then translate for camera
-	opBg.GeoM.Scale(0.5, 0.5)
+	opBg.GeoM.Scale(0.65, 0.65)
 	opBg.GeoM.Translate(-cam.x, -cam.y)
 	screen.DrawImage(background, opBg)
 
@@ -380,7 +382,7 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 func main() {
 	ebiten.SetWindowSize(screenWidth, screenHeight)
 	ebiten.SetWindowTitle("Chaos Crashers")
-	ebiten.SetFullscreen(false)
+	ebiten.SetFullscreen(true)
 	
 	if err := ebiten.RunGame(&Game{}); err != nil { 
 		log.Fatal(err)
