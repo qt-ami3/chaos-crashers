@@ -1,5 +1,7 @@
 Chaos crashers is a top down, wave based hack and slash inspired by soul night for andriod and ios. it uses the ebitengine game engine/framework.
 
+![player asset attacking zombie hoard](assets/images/exampleOne.png)
+
 Instructions are for debian/ubuntu based distrobutions. Instructions for other distrobutions can be found on ebitengine website.
 
 To run:
