@@ -4,24 +4,21 @@ func initFloor(floor *[12][12]int, targetCount int) {
 	if floor == nil || targetCount <= 0 {
 		return
 	}
-
 	maxI := len(floor)
 	maxJ := len(floor[0])
 	
 	if maxI == 0 || maxJ == 0 {
 		return
 	}
-
 	initialized := make(map[[2]int]bool)
 	currentCount := 0
-
 	centerI, centerJ := 6, 6 // Initialize the center point to 1
 	if centerI < maxI && centerJ < maxJ {
 		floor[centerI][centerJ] = 1
 		initialized[[2]int{centerI, centerJ}] = true
 		currentCount++
+	} // <- This closing brace was missing
 	
-
 	for i := 0; i < maxI; i++ { // Count and track any other already non-zero elements
 		for j := 0; j < maxJ; j++ {
 			if floor[i][j] != 0 && !initialized[[2]int{i, j}] {
@@ -30,11 +27,9 @@ func initFloor(floor *[12][12]int, targetCount int) {
 			}
 		}
 	}
-
 	queue := make([][2]int, 0) // Keep a queue of cells to process for more even distribution
 	queue = append(queue, [2]int{centerI, centerJ})
 	processed := make(map[[2]int]bool)
-
 	for currentCount < targetCount && len(queue) > 0 { // Process elements until we reach target count
 		current := queue[0] // Take from front of queue for breadth-first expansion
 		queue = queue[1:]
@@ -45,27 +40,22 @@ func initFloor(floor *[12][12]int, targetCount int) {
 			continue
 		}
 		processed[current] = true
-
 		neighbors := getNeighborsRandomized(i, j, maxI, maxJ, initialized) // Get all valid neighbors in random order for even distribution
 		
 		if len(neighbors) == 0 {
 			continue
 		}
-
 		firstNeighbor := neighbors[0] // Always initialize one neighbor 100% - 50% - 25% - 12.50%
 		if !initialized[firstNeighbor] {
 			floor[firstNeighbor[0]][firstNeighbor[1]] = randInt(1, 2)
 			initialized[firstNeighbor] = true
 			currentCount++
 			queue = append(queue, firstNeighbor)
-
 			if currentCount >= targetCount {
 				return
 			}
-
 			neighbors = getNeighborsRandomized(i, j, maxI, maxJ, initialized) // Update neighbors list after first initialization
 		}
-
 		// Progressively fill remaining neighbors with decreasing probability
 		probability := 50.0 // Start at 50% for second neighbor
 		for _, neighbor := range neighbors {
