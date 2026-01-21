@@ -73,7 +73,6 @@ type player struct {
 	attackFramesStart bool
 }
 
-
 var p = player {
 	x: 255, //init player location
 	y: 132,	//player position

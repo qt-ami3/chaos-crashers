@@ -18,19 +18,19 @@ func randInt(min, max int) int {
 }
 
 func randFloat(min, max float64) float64 {
-  return min + rand.Float64()*(max-min)
+	return min + rand.Float64()*(max-min)
 }
 
 func spawnAxeZombies() {
   count := randInt(10, 10)
 
-  for i := 0; i < count; i++ {
-    z := axeZombie{
-    x:     randFloat(0, float64(screenWidth + 100)),
-    y:     randFloat(0, float64(screenHeight + 100)),
-    hp:    randInt(3, 10),
-    level: randInt(1, 3),
-    speed: axeZombieLiteralSpeed,
+	for i := 0; i < count; i++ {
+		z := axeZombie{
+		x:     randFloat(0, float64(screenWidth + 100)),
+		y:     randFloat(0, float64(screenHeight + 100)),
+		hp:    randInt(3, 10),
+		level: randInt(1, 3),
+		speed: axeZombieLiteralSpeed,
 		facingRight: true,
 		invulnerable: false,
 		walkFrame: randInt(0, (len(axeZombieSprites) - 1)),
@@ -40,8 +40,8 @@ func spawnAxeZombies() {
 		deathAnimationTimer: 0,
 		deathAnimationFrame: 0,
 		knockbackSpeed: 5,
-    }
-    
+		}
+		
 		zombies = append(zombies, z)
   }
 }
@@ -74,7 +74,6 @@ func zombieHitAnimationUpdate(animationSpeed float64) {
 	}
 }
 
-
 func zombieDeathAnimationUpdate(animationSpeed float64) {
 	for i := range zombies {
 		z := &zombies[i]
@@ -99,7 +98,6 @@ func zombieDeathAnimationUpdate(animationSpeed float64) {
 	}
 }
 
-
 func zombieWalkCycleUpdate(animationSpeed float64) {
 	for i := range zombies {
 		z := &zombies[i]
@@ -117,33 +115,34 @@ func zombieWalkCycleUpdate(animationSpeed float64) {
 	}
 }
 
-
 func GetSelfRAM() float64 {
-  
+	
 	file, err := os.Open("/proc/self/status")
-
-  if err != nil {
-  	return -1
-  }
-  
+	
+	if err != nil {
+		return -1
+	}
+	
 	defer file.Close()
+	
+	scanner := bufio.NewScanner(file)
+	
+	for scanner.Scan() {
+		line := scanner.Text()
 
-  scanner := bufio.NewScanner(file)
-    for scanner.Scan() {
-      line := scanner.Text()
-      if strings.HasPrefix(line, "VmRSS:") {
-      fields := strings.Fields(line)
-      kb, _ := strconv.Atoi(fields[1]) // value in KB
-      return float64(kb) / 1024        // return MB
-    }
-  }
-  return -1
+		if strings.HasPrefix(line, "VmRSS:") {
+			fields := strings.Fields(line)
+			kb, _ := strconv.Atoi(fields[1]) // value in KB
+			return float64(kb) / 1024        // return MB
+		}
+	}
+	return -1
 }
 
 func enemyMovement(targetX, targetY, x, y, speed float64, knockBackSpeed float64, knockbackDirection rune, zombies []axeZombie, self int) (float64, float64) {
-  // --- Chase player ---
-  dx := 0.0
-  dy := 0.0
+	//chase player
+	dx := 0.0
+	dy := 0.0
 	
 	switch {
 		case zombies[self].hit == true && knockbackDirection == 'a':
@@ -157,127 +156,133 @@ func enemyMovement(targetX, targetY, x, y, speed float64, knockBackSpeed float64
 	}
 
 	if !zombies[self].hit {
-  	if x < targetX - 100 {
-    	dx += speed
+		if x < targetX - 100 {
+			dx += speed
 			zombies[self].facingRight = true
-  	}
-  	if x > targetX + 100 {
-    	dx -= speed
+		}
+		if x > targetX + 100 {
+			dx -= speed
 			zombies[self].facingRight = false
-  	}
- 		if y + 20 < targetY - 100 {
-  		dy += speed
-  	}
-  	if y - 20 > targetY + 100 {
-   		dy -= speed
-  	}
+		}
+		if y + 20 < targetY - 100 {
+			dy += speed
+		}
+		if y - 20 > targetY + 100 {
+			dy -= speed
+		}
 	}
 
-    // --- Avoid other zombies ---\\
-  avoidDist := 60.0
-
-  for i, z := range zombies {
-    if i == self {
-      continue
-    }
-
-    diffX := x - z.x
-    diffY := y - z.y
-
-    if abs(diffX) < avoidDist && abs(diffY) < avoidDist { // push away from nearby zombie
+	avoidDist := 60.0
+	
+	for i, z := range zombies {
+		if i == self {
+			continue
+		}
+		
+		diffX := x - z.x
+		diffY := y - z.y
+		
+		if abs(diffX) < avoidDist && abs(diffY) < avoidDist { // push away from nearby zombie
 			if diffX > 0 {
-        dx += speed * 0.5
-      } else {
-        dx -= speed * 0.5
-      }
-      if diffY > 0 {
-        dy += speed * 0.5
-      } else {
-        dy -= speed * 0.5
-      }
-    }
-  }
- return x + dx, y + dy
+				dx += speed * 0.5
+			} else {
+				dx -= speed * 0.5
+			}
+			if diffY > 0 {
+				dy += speed * 0.5
+			} else {
+				dy -= speed * 0.5
+			}
+		}
+	}
+	return x + dx, y + dy
 }
 
 func loadAxeZombieDeathSprites() {
-  axeZombieDeathSprites = make([]*ebiten.Image, 11)
-
-  for i := 1; i <= 11; i++ {
-    filename := fmt.Sprintf("assets/sprites/enemies/axeZombie/axeZombieDeath/zombieDeath%d.png", i)
-
-    img, _, err := ebitenutil.NewImageFromFile(filename)
-    if err != nil {
-    log.Fatal(err)
-    }
-    axeZombieDeathSprites[i-1] = img
+	axeZombieDeathSprites = make([]*ebiten.Image, 11)
+	
+	for i := 1; i <= 11; i++ {
+		filename := fmt.Sprintf("assets/sprites/enemies/axeZombie/axeZombieDeath/zombieDeath%d.png", i)
+		
+		img, _, err := ebitenutil.NewImageFromFile(filename)
+		if err != nil {
+			log.Fatal(err)
+		}
+		
+		axeZombieDeathSprites[i-1] = img
 	}
 }
 
 func loadSwordSprites() {
-  swordSprites = make([]*ebiten.Image, 15)
+	swordSprites = make([]*ebiten.Image, 15)
+	
+	for i := 1; i <= 15; i++ {
+		filename := fmt.Sprintf("assets/sprites/swordSwing/coin%d.png", i)
 
-  for i := 1; i <= 15; i++ {
-    filename := fmt.Sprintf("assets/sprites/swordSwing/coin%d.png", i)
+		img, _, err := ebitenutil.NewImageFromFile(filename)
 
-    img, _, err := ebitenutil.NewImageFromFile(filename)
-    if err != nil {
-    log.Fatal(err)
-    }
-    swordSprites[i-1] = img
+		if err != nil {
+			log.Fatal(err)
+		}
+		
+		swordSprites[i-1] = img
 	}
 }
 
 func loadAxeZombieSprites() {
-  axeZombieSprites = make([]*ebiten.Image, 8)
+	axeZombieSprites = make([]*ebiten.Image, 8)
 
-  for i := 1; i <= 8; i++ {
-    filename := fmt.Sprintf("assets/sprites/enemies/axeZombie/axeZombieSprite%02d.png", i)
+	for i := 1; i <= 8; i++ {
+		filename := fmt.Sprintf("assets/sprites/enemies/axeZombie/axeZombieSprite%02d.png", i)
+		
+		img, _, err := ebitenutil.NewImageFromFile(filename)
 
-    img, _, err := ebitenutil.NewImageFromFile(filename)
-    if err != nil {
-    log.Fatal(err)
-    }
-    axeZombieSprites[i-1] = img
+		if err != nil {
+			log.Fatal(err)
+		}
+		
+		axeZombieSprites[i-1] = img
 	}
 }
 
 func loadAxeZombieHitSprites() {
-  axeZombieHitSprites = make([]*ebiten.Image, 8)
+	axeZombieHitSprites = make([]*ebiten.Image, 8)
+	
+	for i := 1; i <= 8; i++ {
+		filename := fmt.Sprintf("assets/sprites/enemies/axeZombie/axeZombieHit/axeZombieHit%02d.png", i)
 
-  for i := 1; i <= 8; i++ {
-    filename := fmt.Sprintf("assets/sprites/enemies/axeZombie/axeZombieHit/axeZombieHit%02d.png", i)
+		img, _, err := ebitenutil.NewImageFromFile(filename)
 
-    img, _, err := ebitenutil.NewImageFromFile(filename)
-    if err != nil {
-    log.Fatal(err)
-    }
-    axeZombieHitSprites[i-1] = img
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		axeZombieHitSprites[i-1] = img
 	}
 }
 
 func abs(f float64) float64 {
-  if f < 0 {
-    return -f
-  }
-  return f
+	if f < 0 {
+		return -f
+	}
+	return f
 }
 
 func isBlocked(px, py float64, dx, dy float64, blockRange float64, zombies []axeZombie) bool {
-  for _, z := range zombies {
-  	if z.hp == 0 {
+	for _, z := range zombies {
+		if z.hp == 0 {
 			continue
 		}
 
 		// Project the check range in the direction the player wants to move
-    checkX := px + dx*blockRange
-    checkY := py + dy*blockRange
+		checkX := px + dx*blockRange
+		checkY := py + dy*blockRange
+		
+		// If an enemy is near that projected point → blocked
+		if abs(z.x-checkX) < 50 && abs(z.y-checkY) < 50 {
+			return true
+		}
+	}
 
-    // If an enemy is near that projected point → blocked
-    if abs(z.x-checkX) < 50 && abs(z.y-checkY) < 50 {
-      return true
-    }
-  }
- 
 	return false
 }
