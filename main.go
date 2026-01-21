@@ -233,39 +233,71 @@ func (g *Game) Update() error { //game logic
 	blockRange := 50.0 //player collusion stat
 
 	//player movement
-
-	// MOVE RIGHT (D or D-Pad Right)
-	if (ebiten.IsKeyPressed(ebiten.KeyD) || ebiten.StandardGamepadAxisValue(0, ebiten.StandardGamepadAxisLeftStickHorizontal) > 0.5 || ebiten.IsStandardGamepadButtonPressed(0, ebiten.StandardGamepadButtonLeftRight)) &&
-		!isBlocked(p.x-25, p.y, 1, 0, blockRange, zombies) {
-		p.x += moveSpeed
+	
+	axisX := ebiten.StandardGamepadAxisValue(0, ebiten.StandardGamepadAxisLeftStickHorizontal) // Get analog stick input
+	axisY := ebiten.StandardGamepadAxisValue(0, ebiten.StandardGamepadAxisLeftStickVertical)
+	
+	deadzone := 0.15 // Apply deadzone to prevent drift
+	if math.Abs(axisX) < deadzone {
+		axisX = 0
+	}
+	if math.Abs(axisY) < deadzone {
+		axisY = 0
 	}
 	
-	// MOVE LEFT (A or D-Pad Left)
-	if (ebiten.IsKeyPressed(ebiten.KeyA) || ebiten.StandardGamepadAxisValue(0, ebiten.StandardGamepadAxisLeftStickHorizontal) < -0.5 || ebiten.IsStandardGamepadButtonPressed(0, ebiten.StandardGamepadButtonLeftLeft)) &&
-		!isBlocked(p.x, p.y, -1, 0, blockRange, zombies) {
-		p.x -= moveSpeed
+	// Calculate movement vector from all inputs
+	var moveX, moveY float64
+	
+	// Keyboard input (binary)
+	if ebiten.IsKeyPressed(ebiten.KeyD) {
+		moveX += 1.0
+	}
+	if ebiten.IsKeyPressed(ebiten.KeyA) {
+		moveX -= 1.0
+	}
+	if ebiten.IsKeyPressed(ebiten.KeyS) {
+		moveY += 1.0
+	}
+	if ebiten.IsKeyPressed(ebiten.KeyW) {
+		moveY -= 1.0
 	}
 	
-	// DOWN (S or D-Pad Down)
-	if (ebiten.IsKeyPressed(ebiten.KeyS) || ebiten.StandardGamepadAxisValue(0, ebiten.StandardGamepadAxisLeftStickVertical) > 0.5 || ebiten.IsStandardGamepadButtonPressed(0, ebiten.StandardGamepadButtonLeftBottom)) &&
-		!isBlocked(p.x, p.y, 0, 1, blockRange, zombies) { //even though going down should be -1
-		p.y += moveSpeed                                  //for deincrimenting the vert position
-	} 																									//the code doesnt work that way.
+	// D-Pad input (binary)
+	if ebiten.IsStandardGamepadButtonPressed(0, ebiten.StandardGamepadButtonLeftRight) {
+		moveX += 1.0
+	}
+	if ebiten.IsStandardGamepadButtonPressed(0, ebiten.StandardGamepadButtonLeftLeft) {
+		moveX -= 1.0
+	}
+	if ebiten.IsStandardGamepadButtonPressed(0, ebiten.StandardGamepadButtonLeftBottom) {
+		moveY += 1.0
+	}
+	if ebiten.IsStandardGamepadButtonPressed(0, ebiten.StandardGamepadButtonLeftTop) {
+		moveY -= 1.0
+	}
 	
-	// UP (W or D-Pad Up)
-	if (ebiten.IsKeyPressed(ebiten.KeyW) || ebiten.StandardGamepadAxisValue(0, ebiten.StandardGamepadAxisLeftStickVertical) < -0.5 || ebiten.IsStandardGamepadButtonPressed(0, ebiten.StandardGamepadButtonLeftTop)) &&
-		!isBlocked(p.x, p.y, 0, -1, blockRange, zombies) {
-		p.y -= moveSpeed
+	if axisX != 0 || axisY != 0 { // Analog stick input
+		moveX = axisX
+		moveY = axisY
 	}
-
-	if cam.following { // Update camera to follow player
-		playerWidth := float64(player1.Bounds().Dx()) // Get player sprite dimensions for proper centering
-		playerHeight := float64(player1.Bounds().Dy())
-		
-		cam.x = p.x + playerWidth / 2 - float64(screenWidth) / 3
-		cam.y = p.y + playerHeight / 2 - float64(screenHeight) / 2.35
+	
+	if moveX != 0 && moveY != 0 { //normalize diagnol
+		magnitude := math.Sqrt(moveX*moveX + moveY*moveY)
+		moveX /= magnitude
+		moveY /= magnitude
 	}
-
+	
+	if moveX > 0 && !isBlocked(p.x-25, p.y, 1, 0, blockRange, zombies) { // Apply movement with collision detection
+		p.x += moveSpeed * moveX
+	} else if moveX < 0 && !isBlocked(p.x, p.y, -1, 0, blockRange, zombies) {
+		p.x += moveSpeed * moveX
+	}
+	
+	if moveY > 0 && !isBlocked(p.x, p.y, 0, 1, blockRange, zombies) {
+		p.y += moveSpeed * moveY
+	} else if moveY < 0 && !isBlocked(p.x, p.y, 0, -1, blockRange, zombies) {
+		p.y += moveSpeed * moveY
+	}
 	zombieLogic()
 
 	return nil
@@ -275,9 +307,7 @@ func (g *Game) Draw(screen *ebiten.Image) {  //called every frame, graphics
 	
 	// Draw background with camera offset and scaling
 	opBg := &ebiten.DrawImageOptions{}
-	
-	// Calculate scale factors to fit the background to screen
-	
+		
 	// Apply scaling first, then translate for camera
 	opBg.GeoM.Scale(0.65, 0.65)
 	opBg.GeoM.Translate(-cam.x, -cam.y)
