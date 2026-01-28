@@ -166,7 +166,7 @@ func (g *Game) Update() error { //game logic
 	tickCount++
 
 	if tickCount == 2 {
-		cam.following = false // Changed to true so camera follows by default
+		cam.following = false
 	}
 
 	// Toggle camera following with C key
@@ -193,7 +193,8 @@ func (g *Game) Update() error { //game logic
 		}
 	}
 
-	//~~> sword direction logic <~~\\
+
+	//sword logic
 
 	switch { //player sword controls - arrow keys or Xbox ABXY
 		case (ebiten.IsKeyPressed(ebiten.KeyArrowRight) || ebiten.IsStandardGamepadButtonPressed(0, ebiten.StandardGamepadButtonRightRight)) && p.hitFrameDuration == 0:
@@ -232,14 +233,13 @@ func (g *Game) Update() error { //game logic
 	moveSpeed := 3.0 //player move speed
 	blockRange := 50.0 //player collusion stat
 
-	//player movement - omnidirectional controller support
+	//player movement
 	
 	// Get analog stick input
 	axisX := ebiten.StandardGamepadAxisValue(0, ebiten.StandardGamepadAxisLeftStickHorizontal)
 	axisY := ebiten.StandardGamepadAxisValue(0, ebiten.StandardGamepadAxisLeftStickVertical)
 	
-	// Apply deadzone to prevent drift
-	deadzone := 0.15
+	deadzone := 0.15 // Apply deadzone to prevent drift
 	if math.Abs(axisX) < deadzone {
 		axisX = 0
 	}
@@ -247,11 +247,9 @@ func (g *Game) Update() error { //game logic
 		axisY = 0
 	}
 	
-	// Calculate movement vector from all inputs
-	var moveX, moveY float64
+	var moveX, moveY float64 // Calculate movement vector from all inputs
 	
-	// Keyboard input (binary)
-	if ebiten.IsKeyPressed(ebiten.KeyD) {
+	if ebiten.IsKeyPressed(ebiten.KeyD) { // Keyboard input
 		moveX += 1.0
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyA) {
@@ -264,8 +262,7 @@ func (g *Game) Update() error { //game logic
 		moveY -= 1.0
 	}
 	
-	// D-Pad input (binary)
-	if ebiten.IsStandardGamepadButtonPressed(0, ebiten.StandardGamepadButtonLeftRight) {
+	if ebiten.IsStandardGamepadButtonPressed(0, ebiten.StandardGamepadButtonLeftRight) { // d-Pad input
 		moveX += 1.0
 	}
 	if ebiten.IsStandardGamepadButtonPressed(0, ebiten.StandardGamepadButtonLeftLeft) {
@@ -278,21 +275,18 @@ func (g *Game) Update() error { //game logic
 		moveY -= 1.0
 	}
 	
-	// Analog stick input (smooth)
-	if axisX != 0 || axisY != 0 {
+	if axisX != 0 || axisY != 0 { //analog stick
 		moveX = axisX
 		moveY = axisY
 	}
 	
-	// Normalize diagonal movement to prevent faster diagonal speed
-	if moveX != 0 && moveY != 0 {
+	if moveX != 0 && moveY != 0 { // Normalize diagonal movement to prevent faster diagonal speed
 		magnitude := math.Sqrt(moveX*moveX + moveY*moveY)
 		moveX /= magnitude
 		moveY /= magnitude
 	}
 	
-	// Apply movement with collision detection
-	if moveX > 0 && !isBlocked(p.x-25, p.y, 1, 0, blockRange, zombies) {
+	if moveX > 0 && !isBlocked(p.x-25, p.y, 1, 0, blockRange, zombies) { // Apply movement with collision detection
 		p.x += moveSpeed * moveX
 	} else if moveX < 0 && !isBlocked(p.x, p.y, -1, 0, blockRange, zombies) {
 		p.x += moveSpeed * moveX
@@ -456,7 +450,7 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 func main() {
 	ebiten.SetWindowSize(screenWidth, screenHeight)
 	ebiten.SetWindowTitle("Chaos Crashers")
-	ebiten.SetFullscreen(false)
+	ebiten.SetFullscreen(true)
 	
 	if err := ebiten.RunGame(&Game{}); err != nil { 
 		log.Fatal(err)
