@@ -524,7 +524,7 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 func main() {
 	ebiten.SetWindowSize(screenWidth, screenHeight)
 	ebiten.SetWindowTitle("Chaos Crashers")
-	ebiten.SetFullscreen(true)
+	ebiten.SetFullscreen(false)
 	
 	if err := ebiten.RunGame(&Game{}); err != nil { 
 		log.Fatal(err)
