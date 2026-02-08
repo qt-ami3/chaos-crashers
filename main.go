@@ -1,3 +1,10 @@
+
+//	Chaos Crashers copyright (c) 2026 River Knuuttila, common alias: Annie Valentine or aval. All Rights Reserved.
+//	Do not redistribute or reuse code without accrediting and explicit permission from author.
+//	Contact: 
+//	+1 (808) 223 4780
+//	riverknuuttila2@outlook.com
+
 package main
 
 import (
@@ -11,124 +18,124 @@ import (
 )
 
 var ( //declare variable for images, name *ebiten.Image.
-	background *ebiten.Image
-	player1 *ebiten.Image
-	playerHP *ebiten.Image
-	swordSprites []*ebiten.Image
+	background 						*ebiten.Image
+	player1 							*ebiten.Image
+	playerHP 							*ebiten.Image
+	swordSprites 					[]*ebiten.Image
 	axeZombieDeathSprites []*ebiten.Image
-	portalSprite *ebiten.Image
+	portalSprite 					*ebiten.Image
 
-	axeZombieSprites []*ebiten.Image //an array of image files means it for a animation
-	axeZombieHitSprites []*ebiten.Image	//see functions.go
+	axeZombieSprites 			[]*ebiten.Image //an array of image files means it for a animation
+	axeZombieHitSprites 	[]*ebiten.Image	//see functions.go
 
-	screenHeight = 540 //* 1.5 //= 810
-	screenWidth = 960 //* 1.5 //= 1440
+	screenHeight =	540 //* 1.5 //= 810
+	screenWidth = 	960 //* 1.5 //= 1440
 
 	//lower is faster
-	axeZombieAnimationSpeed = float64(10)
-	axeZombieHitAnimationSpeed = float64(5)
+	axeZombieAnimationSpeed = 		float64(10)
+	axeZombieHitAnimationSpeed =	float64(5)
 	//higher is faster
-	axeZombieLiteralSpeed = float64(0.7)
+	axeZombieLiteralSpeed = 			float64(0.7)
 
 	tickCount = 0 //for game time keeping
 	
-	sum int = 0
-	floor [12][12]int
-	floorInit bool = false
+	sum int = 				0
+	floor 						[12][12]int
+	floorInit bool =	false
 
 	zombies []axeZombie
 	
 	// Room system variables
-	currentRoomX int = 6
-	currentRoomY int = 6
-	roomCleared [12][12]bool
-	roomLocked bool = false
+	currentRoomX int =	6
+	currentRoomY int =	6
+	roomCleared 				[12][12]bool
+	roomLocked bool = 	false
 )
 
 type Game struct{}
 
 type Camera struct {
-	x float64
-	y float64
-	following bool
+	x 					float64
+	y	  				float64
+	following	 	bool
 }
 
 var cam = Camera{
-	x: 0,
-	y: 0,
-	following: true,
+	x:					0,
+	y:					0,
+	following:	true,
 }
 
 type player struct {
-	x float64
-	y float64
-	attackRange float64
+	x 									float64
+	y 									float64
+	attackRange 				float64
 
-	swordX float64
-	swordY float64
+	swordX 							float64
+	swordY 							float64
 
-	hp int
+	hp 									int
 
-	hitFrameDuration int
+	hitFrameDuration 		int
 
-	attackCount int
-	attackFrames int
-	attackFramesTimer int
+	attackCount 				int
+	attackFrames 				int
+	attackFramesTimer 	int
 
-	swordLocation rune // 'a','d','s','w'
+	swordLocation 			rune // 'a','d','s','w'
 
-	attackActive bool
-	attackFlipped bool
-	attackFramesStart bool
+	attackActive 				bool
+	attackFlipped 			bool
+	attackFramesStart 	bool
 }
 
 var p = player {
-	x: 255, //init player location
-	y: 132,	//player position
+	x: 									 255, //init player location
+	y: 									 132,	//player position
 
-	swordX: 560,
-	swordY: 240 + 100,
-	attackRange: float64(77.5), //swordHitRange in zombieLogic.go
+	swordX: 						 560,
+	swordY: 						 240 + 100,
+	attackRange: 				 float64(77.5), //swordHitRange in zombieLogic.go
 
-	hp: 20,
+	hp: 								 20,
 
-	hitFrameDuration: 0,
+	hitFrameDuration:  	 0,
 
-	attackCount: 0,
-	attackFrames: 15,
-	attackFramesTimer: 0,
+	attackCount: 				 0,
+	attackFrames: 			 15,
+	attackFramesTimer: 	 0,
 
-	swordLocation: 's',
+	swordLocation: 			's',
 
-	attackActive: false,
-	attackFlipped: false,
-	attackFramesStart: false,
+	attackActive: 			false,
+	attackFlipped: 			false,
+	attackFramesStart:	false,
 }
 
 type axeZombie struct {
-	level         int
-	hp            int
-	x, y          float64
-	speed         float64
-	hit           bool
-	hitTimer      int
-	hitFrame      int
-	walkFrame     int
-	facingRight   bool
-	invulnerable  bool
-	walkTimer     float64 
-	hitAnimTimer  float64  
-	inHitAnimation bool
-	deathAnimationPlayed bool
-	deathAnimationTimer float64
-	deathAnimationFrame int
-	knockbackSpeed	float64
+	level         				int
+	hp            				int
+	x, y          				float64
+	speed         				float64
+	hit           				bool
+	hitTimer      				int
+	hitFrame      				int
+	walkFrame     				int
+	facingRight   				bool
+	invulnerable  				bool
+	walkTimer     				float64 
+	hitAnimTimer  				float64  
+	inHitAnimation 				bool
+	deathAnimationPlayed	bool
+	deathAnimationTimer		float64
+	deathAnimationFrame 	int
+	knockbackSpeed				float64
 }
 
 type portal struct {
-	x, y float64
-	targetRoomX, targetRoomY int
-	direction string // "up", "down", "left", "right"
+	x, y 											float64
+	targetRoomX, targetRoomY 	int
+	direction 								string // "up", "down", "left", "right"
 }
 
 var portals []portal

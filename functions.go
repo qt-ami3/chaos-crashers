@@ -1,5 +1,11 @@
-package main
 
+//	Chaos Crashers copyright (c) 2026 River Knuuttila, common alias: Annie Valentine or aval. All Rights Reserved.
+//	Do not redistribute or reuse code without accrediting and explicit permission from author.
+//	Contact: 
+//	+1 (808) 223 4780
+//	riverknuuttila2@outlook.com
+
+package main
 import (
 	"math/rand"
 	"log"
@@ -26,20 +32,20 @@ func spawnAxeZombies() {
 
 	for i := 0; i < count; i++ {
 		z := axeZombie{
-		x:     randFloat(0, float64(screenWidth + 100)),
-		y:     randFloat(0, float64(screenHeight + 100)),
-		hp:    randInt(3, 10),
-		level: randInt(1, 3),
-		speed: axeZombieLiteralSpeed,
-		facingRight: true,
-		invulnerable: false,
-		walkFrame: randInt(0, (len(axeZombieSprites) - 1)),
-		hitFrame: 1,
-		inHitAnimation: false,
-		deathAnimationPlayed: false,
-		deathAnimationTimer: 0,
-		deathAnimationFrame: 0,
-		knockbackSpeed: 5,
+		x:     									randFloat(0, float64(screenWidth + 100)),
+		y:     									randFloat(0, float64(screenHeight + 100)),
+		hp:    									randInt(3, 10),
+		level: 									randInt(1, 3),
+		speed: 									axeZombieLiteralSpeed,
+		facingRight: 						true,
+		invulnerable: 					false,
+		walkFrame: 							randInt(0, (len(axeZombieSprites) - 1)),
+		hitFrame: 							1,
+		inHitAnimation: 				false,
+		deathAnimationPlayed: 	false,
+		deathAnimationTimer: 		0,
+		deathAnimationFrame: 		0,
+		knockbackSpeed: 				5,
 		}
 		
 		zombies = append(zombies, z)
