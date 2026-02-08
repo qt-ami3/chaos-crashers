@@ -1,4 +1,4 @@
-module github.com/digger/digger
+module github.com/qt-ami3/chaos-crashers
 
 go 1.24.9
 
