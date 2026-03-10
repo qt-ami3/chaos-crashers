@@ -31,6 +31,7 @@ var ( //declare variable for images, name *ebiten.Image.
 	screenHeight =	540 //* 1.5 //= 810
 	screenWidth = 	960 //* 1.5 //= 1440
 
+	axeZombieSpriteScale = float64(0.8)
 	//lower is faster
 	axeZombieAnimationSpeed = 		float64(10)
 	axeZombieHitAnimationSpeed =	float64(5)
@@ -411,21 +412,24 @@ func (g *Game) Draw(screen *ebiten.Image) {  //called every frame, graphics loop
 		w := float64(axeZombieSprites[z.walkFrame].Bounds().Dx())
 
 		if z.hp <= 0 && !z.deathAnimationPlayed {
+			op.GeoM.Scale(axeZombieSpriteScale, axeZombieSpriteScale)
 			op.GeoM.Translate(z.x - cam.x, z.y - cam.y)
 			screen.DrawImage(axeZombieDeathSprites[z.deathAnimationFrame], op)
 		} else if z.hp <= 0 {
 			continue
 		} else if z.inHitAnimation {
+			op.GeoM.Scale(axeZombieSpriteScale, axeZombieSpriteScale)
 			op.GeoM.Translate(z.x - cam.x, z.y - cam.y)
 			screen.DrawImage(axeZombieHitSprites[z.hitFrame], op)
 		} else {
 			if !z.facingRight {
-				op.GeoM.Scale(-1, 1)
-				op.GeoM.Translate(z.x + w - cam.x, z.y - cam.y)
+				op.GeoM.Scale(-axeZombieSpriteScale, axeZombieSpriteScale)
+				op.GeoM.Translate(z.x + w*axeZombieSpriteScale - cam.x, z.y - cam.y)
 			} else {
+				op.GeoM.Scale(axeZombieSpriteScale, axeZombieSpriteScale)
 				op.GeoM.Translate(z.x - cam.x, z.y - cam.y)
 			}
-			
+
 			screen.DrawImage(axeZombieSprites[z.walkFrame], op)
 		}
 	}
@@ -541,10 +545,11 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 	return 640, 480
 }
 
-func main() {
+func main() {	
+	ebiten.SetTPS(60)
 	ebiten.SetWindowSize(screenWidth, screenHeight)
 	ebiten.SetWindowTitle("Chaos Crashers")
-	ebiten.SetFullscreen(false)
+	ebiten.SetFullscreen(true)
 	
 	if err := ebiten.RunGame(&Game{}); err != nil { 
 		log.Fatal(err)
