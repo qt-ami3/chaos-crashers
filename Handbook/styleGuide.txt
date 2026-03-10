@@ -1,0 +1,15 @@
+Without getting too philosophical: 
+
+  Variable & function name's should be as simple as possible while conveying what they do, if either of those are 
+  impossible; then leave a comment.
+
+  Comments should not exceed two lines max. Make sure comments are legible and High school level.
+
+  This code base started when the sole contributer was an idiot. If you see a redundant comment; by all means.
+
+  User variables and functions are written in camelCase. ebitengine is inconsistent.
+
+Indents should have 2 space margins. This is an ebitengine game, your not Linus Torvalds.
+
+Nested functions should be avoided unless; the function does only as it says implicitly in the name or function size.
+functions should avoid or aim for 50 lines maximum. recursion should be avoided.

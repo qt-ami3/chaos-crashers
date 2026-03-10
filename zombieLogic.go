@@ -43,29 +43,70 @@ func zombieLogic() {
 			i,
 		)
 		
-		//zombie attack
-		hitRange := 80.0
-		
-		if abs(zombies[i].x - p.x) < hitRange && 
-		abs(zombies[i].y - p.y) < hitRange && tickCount % 150 == 0 {	
-			p.hp--
-			fmt.Println("hp:", p.hp) 
+		//zombie attack using displayed sprite sizes
+		if axeZombieSprites != nil && len(axeZombieSprites) > 0 && axeZombieSprites[0] != nil && player1 != nil {
+			zombieW := float64(axeZombieSprites[0].Bounds().Dx()) * axeZombieSpriteScale
+			zombieH := float64(axeZombieSprites[0].Bounds().Dy()) * axeZombieSpriteScale
+			playerW := float64(player1.Bounds().Dx())
+			playerH := float64(player1.Bounds().Dy())
+
+			zombieCX := zombies[i].x + zombieW/2
+			zombieCY := zombies[i].y + zombieH/2
+			playerCX := p.x + playerW/2
+			playerCY := p.y + playerH/2
+
+			if abs(zombieCX-playerCX) < (zombieW+playerW)/2 &&
+				abs(zombieCY-playerCY) < (zombieH+playerH)/2 &&
+				tickCount%150 == 0 {
+				p.hp--
+				fmt.Println("hp:", p.hp)
+			}
 		}
 
-		//player attack
-		swordHitRange := p.attackRange
-		
-		if abs(zombies[i].x - p.swordX) < swordHitRange && !zombies[i].invulnerable &&
-		abs(zombies[i].y - p.swordY) < swordHitRange && p.attackActive && 
-		zombies[i].hitTimer <= 0 {
-			zombies[i].hp--
-			zombies[i].hit = true
-			zombies[i].inHitAnimation = true
-			zombies[i].hitTimer = p.hitFrameDuration
-			zombies[i].hitFrame = 0
-			zombies[i].hitAnimTimer = 0
-			zombies[i].invulnerable = true
-			fmt.Println("Zombie", i, "hp:", zombies[i].hp)
+		//	Player attack using displayed sword and zombie sprite sizes.
+		if p.attackActive && swordSprites != nil && len(swordSprites) > 0 && swordSprites[0] != nil &&
+			axeZombieSprites != nil && len(axeZombieSprites) > 0 && axeZombieSprites[0] != nil {
+
+			const swordScale = 2.0
+			frame := p.attackFramesTimer
+			if frame >= len(swordSprites) {
+				frame = len(swordSprites) - 1
+			}
+			sw := float64(swordSprites[frame].Bounds().Dx())
+			sh := float64(swordSprites[frame].Bounds().Dy())
+
+			//	Visual center of sword matches the draw transform: translate (-cx,-cy) -> scale → rotate -> translate (swordX+cx, swordY+cy).
+			swordCX := p.swordX + sw/2
+			swordCY := p.swordY + sh/2
+
+			//	Half-dimensions of displayed sword, swap axes for vertical swings 90 degree rotation.
+			var swordHalfW, swordHalfH float64
+			switch p.swordLocation {
+			case 'd', 'a':
+				swordHalfW = sw * swordScale / 2
+				swordHalfH = sh * swordScale / 2
+			case 'w', 's':
+				swordHalfW = sh * swordScale / 2
+				swordHalfH = sw * swordScale / 2
+			}
+
+			zombieW := float64(axeZombieSprites[0].Bounds().Dx()) * axeZombieSpriteScale
+			zombieH := float64(axeZombieSprites[0].Bounds().Dy()) * axeZombieSpriteScale
+			zombieCX := zombies[i].x + zombieW/2
+			zombieCY := zombies[i].y + zombieH/2
+
+			if abs(swordCX-zombieCX) < swordHalfW+zombieW/2 && !zombies[i].invulnerable &&
+				abs(swordCY-zombieCY) < swordHalfH+zombieH/2 &&
+				zombies[i].hitTimer <= 0 {
+				zombies[i].hp--
+				zombies[i].hit = true
+				zombies[i].inHitAnimation = true
+				zombies[i].hitTimer = p.hitFrameDuration
+				zombies[i].hitFrame = 0
+				zombies[i].hitAnimTimer = 0
+				zombies[i].invulnerable = true
+				fmt.Println("Zombie", i, "hp:", zombies[i].hp)
+			}
 		}
 
 		if zombies[i].hit {

@@ -268,16 +268,16 @@ func (g *Game) Update() error { //game logic game loop
 			p.swordY = p.y - 100
 	}
 	
-	moveSpeed := 3.0 //player move speed
-	blockRange := 50.0 //player collusion stat
+	moveSpeed := 3.0
+	blockRange := 50.0 //	Player collusion stat.
 
-	//player movement
+	//	Player movement.
 	
-	// Get analog stick input
+	//	Get analog stick input:
 	axisX := ebiten.StandardGamepadAxisValue(0, ebiten.StandardGamepadAxisLeftStickHorizontal)
 	axisY := ebiten.StandardGamepadAxisValue(0, ebiten.StandardGamepadAxisLeftStickVertical)
 	
-	deadzone := 0.15 // Apply deadzone to prevent drift
+	deadzone := 0.15 //  Apply deadzone to prevent drift:
 	if math.Abs(axisX) < deadzone {
 		axisX = 0
 	}
@@ -549,7 +549,7 @@ func main() {
 	ebiten.SetTPS(60)
 	ebiten.SetWindowSize(screenWidth, screenHeight)
 	ebiten.SetWindowTitle("Chaos Crashers")
-	ebiten.SetFullscreen(true)
+	ebiten.SetFullscreen(false)
 	
 	if err := ebiten.RunGame(&Game{}); err != nil { 
 		log.Fatal(err)
